@@ -1,5 +1,7 @@
-// Prisma Schema for JalGyan (WaterWise)
-// Shared database schema for Module A, Module B, and Module C
+// =============================================================================
+// JalGyan (WaterWise) — Unified Production Prisma Schema
+// Shared between Module A (Knowledge), Module B (Community), and Module C (Admin & Calculator)
+// =============================================================================
 
 generator client {
   provider = "prisma-client"
@@ -8,4 +10,329 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum ArticleStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+}
+
+enum VoteType {
+  UPVOTE
+  DOWNVOTE
+}
+
+enum ReportStatus {
+  PENDING
+  DISMISSED
+  RESOLVED
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  MISINFORMATION
+  INAPPROPRIATE
+  OTHER
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+  ARTICLE
+  USER
+}
+
+enum CalculationType {
+  AGRICULTURE
+  DRIP_IRRIGATION
+  RAINWATER_HARVESTING
+  HOUSEHOLD
+}
+
+enum CalculationPeriod {
+  DAILY
+  SEASONAL
+  ANNUAL
+}
+
+// =============================================================================
+// 1. SHARED IDENTITY & AUTHENTICATION
+// =============================================================================
+
+model User {
+  id               String             @id @default(cuid())
+  name             String
+  email            String             @unique
+  password         String             // Strictly BCrypt hash ($2b$12$...)
+  role             Role               @default(USER)
+  status           UserStatus         @default(ACTIVE)
+  location         String?
+  bio              String?            @db.Text
+  deletedAt        DateTime?          // Soft deletion support
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  // Module A relations
+  articles         Article[]
+
+  // Module B relations
+  posts            ForumPost[]
+  comments         Comment[]
+  votes            Vote[]
+  bookmarks        Bookmark[]
+  reportsFiled     Report[]           @relation("ReportsFiled")
+  targetReports    Report[]           @relation("TargetUserReports")
+
+  // Module C relations
+  articleReviews   ArticleReview[]    @relation("ArticleReviews")
+  reportsModerated Report[]           @relation("ReportsModerated")
+  adminActions     AdminAction[]      @relation("AdminActions")
+  calculations     WaterCalculation[]
+
+  @@index([role, status])
+  @@index([deletedAt])
+}
+
+// =============================================================================
+// MODULE A: KNOWLEDGE MANAGEMENT (Person 1)
+// =============================================================================
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?   @db.Text
+  articles    Article[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Article {
+  id              String            @id @default(cuid())
+  title           String
+  slug            String            @unique
+  summary         String            @db.Text
+  content         String            @db.Text
+  readTime        String?           // e.g. "8 min read" matching frontend library
+  coverImage      String?
+  status          ArticleStatus     @default(DRAFT)
+  rejectionReason String?           @db.Text
+  viewsCount      Int               @default(0)
+  authorId        String
+  author          User              @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  categoryId      String
+  category        Category          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  resources       ArticleResource[]
+  reviews         ArticleReview[]   // Module C review audit trail
+  bookmarks       Bookmark[]        // Module B bookmarks
+  reports         Report[]          // Moderation reports
+  publishedAt     DateTime?
+  deletedAt       DateTime?         // Soft deletion support
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Optimized Composite Indexes
+  @@index([status, categoryId])
+  @@index([status, createdAt])
+  @@index([authorId])
+  @@index([deletedAt])
+}
+
+model ArticleResource {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  title     String
+  url       String
+  type      String   // e.g., "PDF", "LINK", "DATASET"
+  createdAt DateTime @default(now())
+
+  @@index([articleId])
+}
+
+// =============================================================================
+// MODULE B: COMMUNITY AND ENGAGEMENT (Person 2)
+// =============================================================================
+
+model ForumPost {
+  id             String    @id @default(cuid())
+  title          String
+  body           String    @db.Text
+  category       String    // Community, Agriculture, Rainwater, Household, Groundwater
+  tags           String[]  @default([])
+  upvotesCount   Int       @default(0)
+  downvotesCount Int       @default(0)
+  netVoteScore   Int       @default(0) // upvotesCount - downvotesCount (fast feed sorting)
+  commentsCount  Int       @default(0)
+  authorId       String
+  author         User      @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  comments       Comment[]
+  votes          Vote[]
+  reports        Report[]
+  deletedAt      DateTime? // Soft deletion support
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Optimized Composite Indexes
+  @@index([category, createdAt])
+  @@index([authorId])
+  @@index([netVoteScore(sort: Desc)])
+  @@index([deletedAt])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  text      String    @db.Text
+  postId    String
+  post      ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  parentId  String?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  reports   Report[]
+  deletedAt DateTime? // Soft deletion support
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Optimized Composite Indexes
+  @@index([postId, parentId])
+  @@index([authorId])
+  @@index([deletedAt])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  type      VoteType @default(UPVOTE)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      ForumPost@relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Guaranteed single vote per user per discussion post
+  @@unique([userId, postId])
+  @@index([postId, type])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  // Prevents duplicate bookmarks
+  @@unique([userId, articleId])
+  @@index([userId])
+  @@index([articleId])
+}
+
+model Report {
+  id             String           @id @default(cuid())
+  reporterId     String
+  reporter       User             @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Restrict)
+  targetType     ReportTargetType
+  reason         ReportReason
+  description    String?          @db.Text
+  status         ReportStatus     @default(PENDING)
+  actionTaken    String?          @db.Text
+  moderatorId    String?
+  moderator      User?            @relation("ReportsModerated", fields: [moderatorId], references: [id], onDelete: SetNull)
+
+  // Explicit foreign keys with SetNull on target removal to preserve audit history
+  postId         String?
+  post           ForumPost?       @relation(fields: [postId], references: [id], onDelete: SetNull)
+  commentId      String?
+  comment        Comment?         @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  articleId      String?
+  article        Article?         @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  targetUserId   String?
+  targetUser     User?            @relation("TargetUserReports", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  // Preserved snapshot of target content if original entity is permanently purged
+  targetSnapshot Json?
+
+  createdAt      DateTime         @default(now())
+  resolvedAt     DateTime?
+
+  // Optimized Composite Indexes
+  @@index([status, targetType])
+  @@index([reporterId])
+  @@index([moderatorId])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// MODULE C: PLATFORM ADMINISTRATION & WATER CALCULATOR (Person 3)
+// =============================================================================
+
+model ArticleReview {
+  id             String        @id @default(cuid())
+  articleId      String
+  article        Article       @relation(fields: [articleId], references: [id], onDelete: Restrict)
+  reviewerId     String
+  reviewer       User          @relation("ArticleReviews", fields: [reviewerId], references: [id], onDelete: Restrict)
+  previousStatus ArticleStatus
+  newStatus      ArticleStatus
+  feedback       String?       @db.Text
+  createdAt      DateTime      @default(now())
+
+  @@index([articleId, createdAt])
+  @@index([reviewerId])
+}
+
+model AdminAction {
+  id           String   @id @default(cuid())
+  adminId      String
+  admin        User     @relation("AdminActions", fields: [adminId], references: [id], onDelete: Restrict)
+  actionType   String   // e.g. "USER_SUSPENDED", "ROLE_UPDATED", "REPORT_RESOLVED"
+  targetEntity String   // e.g. "User", "Article", "Report", "ForumPost", "Comment"
+  targetId     String   // Decoupled ID to guarantee audit log preservation
+  details      Json?    // Contextual snapshot (reasons, parameter changes, diffs)
+  createdAt    DateTime @default(now())
+
+  @@index([adminId, createdAt])
+  @@index([targetEntity, targetId])
+  @@index([actionType])
+}
+
+model WaterCalculation {
+  id                         String            @id @default(cuid())
+  userId                     String?           // Nullable to support guest calculations
+  user                       User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  calculationType            CalculationType
+  period                     CalculationPeriod @default(ANNUAL)
+  inputParams                Json              // Inputs: cropType, acreage, family size, roof area, etc.
+  resultMetrics              Json              // Detailed metric output breakdown
+  waterSavedLiters           Decimal           @default(0.0) @db.Decimal(14, 2)     // Measured period savings
+  waterHarvestedLiters       Decimal           @default(0.0) @db.Decimal(14, 2)     // Measured period harvest
+  annualWaterSavedLiters     Decimal?          @db.Decimal(14, 2)                  // Normalized annual savings
+  annualWaterHarvestedLiters Decimal?          @db.Decimal(14, 2)                  // Normalized annual harvest
+  notes                      String?           @db.Text
+  createdAt                  DateTime          @default(now())
+
+  // Optimized Composite Indexes
+  @@index([calculationType, period, createdAt])
+  @@index([userId])
+  @@index([createdAt])
 }
