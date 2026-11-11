@@ -1,0 +1,11 @@
+// Prisma Schema for JalGyan (WaterWise)
+// Shared database schema for Module A, Module B, and Module C
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
