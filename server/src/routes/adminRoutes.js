@@ -22,6 +22,11 @@ import {
   resolveReport,
   dismissReport,
 } from '../controllers/reportModerationController.js';
+import {
+  listActivities,
+  getActivitySummary,
+  getActivityById,
+} from '../controllers/adminActivityController.js';
 
 const router = Router();
 
@@ -83,5 +88,15 @@ router.patch('/reports/:id/resolve', requireAuth, requireAdmin, resolveReport);
 
 // PATCH /api/admin/reports/:id/dismiss - Dismiss a pending report
 router.patch('/reports/:id/dismiss', requireAuth, requireAdmin, dismissReport);
+
+// Admin Activity & Audit Log Endpoints (Requires valid JWT with role === 'ADMIN')
+// GET /api/admin/activity/summary - Aggregate audit activity statistics (mounted before /:id)
+router.get('/activity/summary', requireAuth, requireAdmin, getActivitySummary);
+
+// GET /api/admin/activity - Paginated activity log with filtering
+router.get('/activity', requireAuth, requireAdmin, listActivities);
+
+// GET /api/admin/activity/:id - Full details of one administrative action
+router.get('/activity/:id', requireAuth, requireAdmin, getActivityById);
 
 export default router;
