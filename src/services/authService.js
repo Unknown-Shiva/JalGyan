@@ -1,16 +1,46 @@
 import { apiRequest } from './api'
 
-const demoUser = { id: 'u1', name: 'Aarav Kulkarni', email: 'aarav@example.com', location: 'Pune, Maharashtra', bio: 'Interested in practical water conservation and sustainable communities.' }
-
 export const authService = {
+  /**
+   * Authenticate user with email and password via backend POST /api/auth/login
+   * @param {{ email: string, password: string }} credentials
+   * @returns {Promise<{ token: string, user: object }>}
+   */
   async login(credentials) {
-    // Demo mode: replace with apiRequest('/auth/login', ...) when backend is ready.
-    if (!credentials.email || !credentials.password) throw new Error('Enter your email and password.')
-    return { user: { ...demoUser, name: credentials.email.split('@')[0].replace(/[._]/g, ' ') }, token: 'demo-token' }
+    if (!credentials?.email || !credentials?.password) {
+      throw new Error('Enter your email and password.')
+    }
+    const data = await apiRequest('/auth/login', {
+      method: 'POST',
+      body: {
+        email: String(credentials.email).trim(),
+        password: credentials.password,
+      },
+    })
+    return data
   },
+
+  /**
+   * Register a new user account
+   * @param {object} payload
+   */
   async register(payload) {
-    if (!payload.name || !payload.email || !payload.password) throw new Error('Complete all required fields.')
-    return { user: { ...demoUser, name: payload.name, email: payload.email }, token: 'demo-token' }
+    if (!payload?.name || !payload?.email || !payload?.password) {
+      throw new Error('Complete all required fields.')
+    }
+    const data = await apiRequest('/auth/register', {
+      method: 'POST',
+      body: payload,
+    })
+    return data
   },
-  me: () => apiRequest('/auth/me')
+
+  /**
+   * Retrieve currently authenticated user profile via GET /api/auth/me
+   * @returns {Promise<object>}
+   */
+  async me() {
+    const data = await apiRequest('/auth/me')
+    return data.user || data
+  },
 }
