@@ -6,6 +6,8 @@ import { apiRequest } from './api'
  * JWT authentication, and standardized error handling.
  */
 export const adminService = {
+  // ── Article Moderation Methods ─────────────────────────────────────────────
+
   /**
    * Fetch paginated list of articles pending moderation review
    * @param {{ page?: number, limit?: number }} params
@@ -68,5 +70,91 @@ export const adminService = {
   async getArticleReviews(id) {
     if (!id) throw new Error('Article ID is required.')
     return apiRequest(`/admin/articles/${id}/reviews`)
+  },
+
+  // ── User Management Methods ────────────────────────────────────────────────
+
+  /**
+   * Fetch paginated list of users with search, role/status filtering, and sorting
+   * @param {{ page?: number, limit?: number, search?: string, role?: string, status?: string, sortBy?: string, sortOrder?: string }} params
+   * @returns {Promise<{ users: Array, pagination: { page: number, limit: number, total: number, totalPages: number } }>}
+   */
+  async getUsers({
+    page = 1,
+    limit = 10,
+    search,
+    role,
+    status,
+    sortBy = 'createdAt',
+    sortOrder = 'desc',
+  } = {}) {
+    const params = new URLSearchParams()
+    if (page) params.append('page', String(page))
+    if (limit) params.append('limit', String(limit))
+    if (search && String(search).trim()) params.append('search', String(search).trim())
+    if (role && role !== 'ALL') params.append('role', role)
+    if (status && status !== 'ALL') params.append('status', status)
+    if (sortBy) params.append('sortBy', sortBy)
+    if (sortOrder) params.append('sortOrder', sortOrder)
+
+    return apiRequest(`/admin/users?${params.toString()}`)
+  },
+
+  /**
+   * Fetch complete user details including aggregated platform activity counts
+   * @param {string} id
+   * @returns {Promise<{ user: object }>}
+   */
+  async getUserById(id) {
+    if (!id) throw new Error('User ID is required.')
+    return apiRequest(`/admin/users/${id}`)
+  },
+
+  /**
+   * Suspend an active user account
+   * @param {string} id
+   * @param {object|string} payload Optional reason or object { reason }
+   * @returns {Promise<{ user: object }>}
+   */
+  async suspendUser(id, payload = {}) {
+    if (!id) throw new Error('User ID is required.')
+    const body = typeof payload === 'string' ? { reason: payload } : (payload || {})
+    return apiRequest(`/admin/users/${id}/suspend`, {
+      method: 'PATCH',
+      body,
+    })
+  },
+
+  /**
+   * Reactivate a suspended user account
+   * @param {string} id
+   * @param {object|string} payload Optional reason or object { reason }
+   * @returns {Promise<{ user: object }>}
+   */
+  async activateUser(id, payload = {}) {
+    if (!id) throw new Error('User ID is required.')
+    const body = typeof payload === 'string' ? { reason: payload } : (payload || {})
+    return apiRequest(`/admin/users/${id}/activate`, {
+      method: 'PATCH',
+      body,
+    })
+  },
+
+  /**
+   * Change user role (USER or ADMIN)
+   * @param {string} id
+   * @param {object|string} payload Role string or object { role }
+   * @returns {Promise<{ user: object }>}
+   */
+  async updateUserRole(id, payload) {
+    if (!id) throw new Error('User ID is required.')
+    const role = typeof payload === 'string' ? payload : payload?.role
+    if (!role || !['USER', 'ADMIN'].includes(role)) {
+      throw new Error("Invalid role provided. Role must be 'USER' or 'ADMIN'.")
+    }
+    return apiRequest(`/admin/users/${id}/role`, {
+      method: 'PATCH',
+      body: { role },
+    })
   },
 }
