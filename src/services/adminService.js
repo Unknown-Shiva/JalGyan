@@ -225,4 +225,54 @@ export const adminService = {
       body,
     })
   },
+
+  // ── Admin Activity & Audit Log Methods ─────────────────────────────────────
+
+  /**
+   * Fetch paginated list of administrative actions with filtering and sorting
+   * @param {{ page?: number, limit?: number, actionType?: string, targetEntity?: string, adminId?: string, targetId?: string, startDate?: string, endDate?: string, sortOrder?: string }} params
+   * @returns {Promise<{ actions: Array, pagination: { page: number, limit: number, total: number, totalPages: number } }>}
+   */
+  async getAdminActivity({
+    page = 1,
+    limit = 20,
+    actionType,
+    targetEntity,
+    adminId,
+    targetId,
+    startDate,
+    endDate,
+    sortOrder = 'desc',
+  } = {}) {
+    const params = new URLSearchParams()
+    if (page) params.append('page', String(page))
+    if (limit) params.append('limit', String(limit))
+    if (actionType && actionType !== 'ALL') params.append('actionType', actionType)
+    if (targetEntity && targetEntity !== 'ALL') params.append('targetEntity', targetEntity)
+    if (adminId && adminId !== 'ALL' && String(adminId).trim()) params.append('adminId', String(adminId).trim())
+    if (targetId && String(targetId).trim()) params.append('targetId', String(targetId).trim())
+    if (startDate) params.append('startDate', startDate)
+    if (endDate) params.append('endDate', endDate)
+    if (sortOrder) params.append('sortOrder', sortOrder)
+
+    return apiRequest(`/admin/activity?${params.toString()}`)
+  },
+
+  /**
+   * Fetch aggregate audit activity summary (totals, 7/30-day metrics, breakdowns, top admins)
+   * @returns {Promise<{ totalActions: number, activityLast7Days: number, activityLast30Days: number, byActionType: object, byTargetEntity: object, topAdministrators: Array }>}
+   */
+  async getAdminActivitySummary() {
+    return apiRequest('/admin/activity/summary')
+  },
+
+  /**
+   * Fetch detailed view of a single administrative audit action record
+   * @param {string} id
+   * @returns {Promise<{ action: object }>}
+   */
+  async getAdminActivityById(id) {
+    if (!id) throw new Error('Activity ID is required.')
+    return apiRequest(`/admin/activity/${id}`)
+  },
 }

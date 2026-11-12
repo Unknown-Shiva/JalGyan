@@ -12,7 +12,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import ArticleModeration from './pages/admin/ArticleModeration'
 import UserManagement from './pages/admin/UserManagement'
 import ReportModeration from './pages/admin/ReportModeration'
-import AdminComingSoon from './components/admin/AdminComingSoon'
+import AdminActivity from './pages/admin/AdminActivity'
 import { useAuth } from './hooks/useAuth'
 
 function Protected({ children }) {
@@ -46,15 +46,7 @@ export default function App() {
           <Route path="articles" element={<ArticleModeration />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="reports" element={<ReportModeration />} />
-          <Route
-            path="activity"
-            element={
-              <AdminComingSoon
-                title="Admin Activity & Audit Logs"
-                description="Full activity audit log features will be available in Phase 4, Step 4.7."
-              />
-            }
-          />
+          <Route path="activity" element={<AdminActivity />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/forum" replace />} />
