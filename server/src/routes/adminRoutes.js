@@ -16,6 +16,12 @@ import {
   activateUser,
   updateUserRole,
 } from '../controllers/userManagementController.js';
+import {
+  listReports,
+  getReportById,
+  resolveReport,
+  dismissReport,
+} from '../controllers/reportModerationController.js';
 
 const router = Router();
 
@@ -64,5 +70,18 @@ router.patch('/users/:id/activate', requireAuth, requireAdmin, activateUser);
 
 // PATCH /api/admin/users/:id/role - Update user role (USER or ADMIN)
 router.patch('/users/:id/role', requireAuth, requireAdmin, updateUserRole);
+
+// Report Moderation Endpoints (Requires valid JWT with role === 'ADMIN')
+// GET /api/admin/reports - Paginated report queue with filtering and sorting
+router.get('/reports', requireAuth, requireAdmin, listReports);
+
+// GET /api/admin/reports/:id - Complete report details with snapshot fallback and audit history
+router.get('/reports/:id', requireAuth, requireAdmin, getReportById);
+
+// PATCH /api/admin/reports/:id/resolve - Resolve a pending report
+router.patch('/reports/:id/resolve', requireAuth, requireAdmin, resolveReport);
+
+// PATCH /api/admin/reports/:id/dismiss - Dismiss a pending report
+router.patch('/reports/:id/dismiss', requireAuth, requireAdmin, dismissReport);
 
 export default router;
