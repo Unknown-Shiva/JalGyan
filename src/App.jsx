@@ -6,10 +6,12 @@ import Forum from './pages/Forum'
 import PostDetails from './pages/PostDetails'
 import Profile from './pages/Profile'
 import Bookmarks from './pages/Bookmarks'
+import AdminRoute from './components/admin/AdminRoute'
 import { useAuth } from './hooks/useAuth'
 
 function Protected({ children }) {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+  if (loading) return <div className="loading-state">Verifying session...</div>
   return user ? children : <Navigate to="/login" replace />
 }
 
@@ -24,6 +26,19 @@ export default function App() {
         <Route path="/forum/:id" element={<PostDetails />} />
         <Route path="/profile" element={<Protected><Profile /></Protected>} />
         <Route path="/bookmarks" element={<Protected><Bookmarks /></Protected>} />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <div className="page-container">
+                <div className="section-heading">
+                  <h2>Admin Dashboard</h2>
+                  <p>Welcome to Module C Platform Administration.</p>
+                </div>
+              </div>
+            </AdminRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/forum" replace />} />
       </Route>
     </Routes>

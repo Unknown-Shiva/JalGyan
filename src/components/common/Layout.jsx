@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Droplets, Menu, Search, Bell, ChevronDown, LogOut, UserRound, Bookmark, MessageCircle, X } from 'lucide-react'
+import { Droplets, Menu, Search, Bell, ChevronDown, LogOut, UserRound, Bookmark, Shield, X } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -22,6 +22,15 @@ export default function Layout() {
             <NavLink to="/forum" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>Community</NavLink>
             <a href="#knowledge" className="nav-link" onClick={e => { e.preventDefault(); navigate('/forum') }}>Knowledge library</a>
             <a href="#calculator" className="nav-link" onClick={e => e.preventDefault()}>Water calculator</a>
+            {user?.role === 'ADMIN' && (
+              <NavLink
+                to="/admin"
+                className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}
+                onClick={() => setMenuOpen(false)}
+              >
+                Admin Dashboard
+              </NavLink>
+            )}
           </nav>
           <div className="top-actions">
             <button className="icon-button search-button" aria-label="Search"><Search size={19}/></button>
@@ -33,6 +42,11 @@ export default function Layout() {
                   <span className="profile-trigger-name">{user.name?.split(' ')[0]}</span><ChevronDown size={15}/>
                 </button>
                 {profileOpen && <div className="dropdown">
+                  {user?.role === 'ADMIN' && (
+                    <NavLink to="/admin" onClick={() => setProfileOpen(false)}>
+                      <Shield size={16} /> Admin Dashboard
+                    </NavLink>
+                  )}
                   <NavLink to="/profile" onClick={() => setProfileOpen(false)}><UserRound size={16}/> My profile</NavLink>
                   <NavLink to="/bookmarks" onClick={() => setProfileOpen(false)}><Bookmark size={16}/> Saved articles</NavLink>
                   <button onClick={leave}><LogOut size={16}/> Sign out</button>
