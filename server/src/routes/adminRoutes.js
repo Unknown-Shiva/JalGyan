@@ -9,6 +9,13 @@ import {
   rejectArticle,
   getArticleReviews,
 } from '../controllers/articleReviewController.js';
+import {
+  listUsers,
+  getUserById,
+  suspendUser,
+  activateUser,
+  updateUserRole,
+} from '../controllers/userManagementController.js';
 
 const router = Router();
 
@@ -41,5 +48,21 @@ router.patch('/articles/:id/reject', requireAuth, requireAdmin, rejectArticle);
 
 // GET /api/admin/articles/:id/reviews - Chronological review history for article
 router.get('/articles/:id/reviews', requireAuth, requireAdmin, getArticleReviews);
+
+// User Management Endpoints (Requires valid JWT with role === 'ADMIN')
+// GET /api/admin/users - Paginated user list with filtering and search
+router.get('/users', requireAuth, requireAdmin, listUsers);
+
+// GET /api/admin/users/:id - Detailed user information with activity counts
+router.get('/users/:id', requireAuth, requireAdmin, getUserById);
+
+// PATCH /api/admin/users/:id/suspend - Suspend an active user
+router.patch('/users/:id/suspend', requireAuth, requireAdmin, suspendUser);
+
+// PATCH /api/admin/users/:id/activate - Reactivate a suspended user
+router.patch('/users/:id/activate', requireAuth, requireAdmin, activateUser);
+
+// PATCH /api/admin/users/:id/role - Update user role (USER or ADMIN)
+router.patch('/users/:id/role', requireAuth, requireAdmin, updateUserRole);
 
 export default router;
