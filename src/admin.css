@@ -1576,3 +1576,238 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+/* ── Content Moderation & Reports Styles ─────────────────────── */
+.adm-reason-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2.5px 8px;
+  border-radius: 12px;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.adm-reason-spam {
+  background: #fbeeed;
+  color: #a92f25;
+  border: 1px solid #f4c7c4;
+}
+
+.adm-reason-harassment {
+  background: #f8eefb;
+  color: #77298f;
+  border: 1px solid #e6c5ee;
+}
+
+.adm-reason-misinformation {
+  background: #fff4e6;
+  color: #b76214;
+  border: 1px solid #fdd8b2;
+}
+
+.adm-reason-inappropriate {
+  background: #fef0f7;
+  color: #ad2669;
+  border: 1px solid #fac1dc;
+}
+
+.adm-reason-other {
+  background: #f2f5f3;
+  color: #576d60;
+  border: 1px solid #dce3df;
+}
+
+.adm-target-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f4f7f4;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #2a4435;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.adm-tt-icon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.adm-report-status-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2.5px 8px;
+  border-radius: 12px;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.adm-report-status-pending {
+  background: #fff5e6;
+  color: #be6418;
+  border: 1px solid #fedbbe;
+}
+
+.adm-report-status-resolved {
+  background: #eaf6ee;
+  color: #1d7b53;
+  border: 1px solid #c8e7d4;
+}
+
+.adm-report-status-dismissed {
+  background: #f0f3f1;
+  color: #667a6e;
+  border: 1px solid #dbe2dd;
+}
+
+.adm-report-preview-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 320px;
+}
+
+.adm-report-target-snippet {
+  font-size: 12px;
+  font-weight: 600;
+  color: #253a2d;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+}
+
+.adm-snippet-deleted-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #b53326;
+}
+
+.adm-report-desc-snippet {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-style: italic;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.adm-meta-mono {
+  font-family: monospace;
+  font-size: 10.5px;
+  color: #425b4c;
+  word-break: break-all;
+}
+
+/* Target View in Details Modal */
+.adm-target-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.adm-deleted-target-badge {
+  background: #feebe8;
+  color: #b53326;
+  border: 1px solid #f8c2bc;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.adm-live-target-badge {
+  background: #e9f6ed;
+  color: #1b7a51;
+  border: 1px solid #c8e7d4;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.adm-target-missing-box {
+  background: #f8faf8;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-style: italic;
+}
+
+.adm-target-missing-box p {
+  margin: 0;
+}
+
+.adm-target-box {
+  background: #f9fbf9;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.adm-target-box-deleted {
+  background: #fffafa;
+  border-color: #f7d2cd;
+}
+
+.adm-target-title {
+  font: 700 13.5px var(--serif);
+  color: #1c3426;
+  margin: 0 0 6px;
+}
+
+.adm-target-body {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #34483b;
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+}
+
+.adm-target-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--muted);
+  flex-wrap: wrap;
+  border-top: 1px solid #eef2ef;
+  padding-top: 8px;
+  margin-top: 6px;
+}
+
+.adm-resolution-box {
+  background: #f0f7f3;
+  border-left: 3px solid var(--green);
+  padding: 11px 15px;
+  border-radius: 0 8px 8px 0;
+  font-size: 12px;
+  color: #244634;
+}
+
+.adm-resolution-box p {
+  margin: 0 0 4px;
+  line-height: 1.5;
+}

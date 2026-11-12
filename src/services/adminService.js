@@ -157,4 +157,72 @@ export const adminService = {
       body: { role },
     })
   },
+
+  // ── Content Moderation & Reports Methods ───────────────────────────────────
+
+  /**
+   * Fetch paginated list of content reports with status, reason, targetType filtering and sorting
+   * @param {{ page?: number, limit?: number, status?: string, reason?: string, targetType?: string, sortOrder?: string }} params
+   * @returns {Promise<{ reports: Array, pagination: { page: number, limit: number, total: number, totalPages: number } }>}
+   */
+  async getReports({
+    page = 1,
+    limit = 10,
+    status,
+    reason,
+    targetType,
+    sortOrder = 'desc',
+  } = {}) {
+    const params = new URLSearchParams()
+    if (page) params.append('page', String(page))
+    if (limit) params.append('limit', String(limit))
+    if (status && status !== 'ALL') params.append('status', status)
+    if (reason && reason !== 'ALL') params.append('reason', reason)
+    if (targetType && targetType !== 'ALL') params.append('targetType', targetType)
+    if (sortOrder) params.append('sortOrder', sortOrder)
+
+    return apiRequest(`/admin/reports?${params.toString()}`)
+  },
+
+  /**
+   * Fetch detailed report information including reporter, target content, preserved snapshot, and audit trail
+   * @param {string} id
+   * @returns {Promise<{ report: object }>}
+   */
+  async getReportById(id) {
+    if (!id) throw new Error('Report ID is required.')
+    return apiRequest(`/admin/reports/${id}`)
+  },
+
+  /**
+   * Resolve a pending report with optional moderator notes
+   * @param {string} id
+   * @param {object|string} payload Optional note string or object { note }
+   * @returns {Promise<{ report: object }>}
+   */
+  async resolveReport(id, payload = {}) {
+    if (!id) throw new Error('Report ID is required.')
+    const note = typeof payload === 'string' ? payload : (payload?.note || payload?.moderationNote || payload?.reason)
+    const body = note && String(note).trim() ? { note: String(note).trim() } : {}
+    return apiRequest(`/admin/reports/${id}/resolve`, {
+      method: 'PATCH',
+      body,
+    })
+  },
+
+  /**
+   * Dismiss a pending report with optional moderator notes
+   * @param {string} id
+   * @param {object|string} payload Optional note string or object { note }
+   * @returns {Promise<{ report: object }>}
+   */
+  async dismissReport(id, payload = {}) {
+    if (!id) throw new Error('Report ID is required.')
+    const note = typeof payload === 'string' ? payload : (payload?.note || payload?.moderationNote || payload?.reason)
+    const body = note && String(note).trim() ? { note: String(note).trim() } : {}
+    return apiRequest(`/admin/reports/${id}/dismiss`, {
+      method: 'PATCH',
+      body,
+    })
+  },
 }

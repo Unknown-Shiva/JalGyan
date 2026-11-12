@@ -11,6 +11,7 @@ import AdminLayout from './components/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import ArticleModeration from './pages/admin/ArticleModeration'
 import UserManagement from './pages/admin/UserManagement'
+import ReportModeration from './pages/admin/ReportModeration'
 import AdminComingSoon from './components/admin/AdminComingSoon'
 import { useAuth } from './hooks/useAuth'
 
@@ -44,15 +45,7 @@ export default function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="articles" element={<ArticleModeration />} />
           <Route path="users" element={<UserManagement />} />
-          <Route
-            path="reports"
-            element={
-              <AdminComingSoon
-                title="Content Moderation & Reports"
-                description="Report moderation features will be available in Phase 4, Step 4.6."
-              />
-            }
-          />
+          <Route path="reports" element={<ReportModeration />} />
           <Route
             path="activity"
             element={
