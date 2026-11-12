@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/adminMiddleware.js';
+import { getDashboardStats } from '../controllers/adminDashboardController.js';
 
 const router = Router();
 
@@ -14,5 +15,8 @@ router.get('/verify', requireAuth, requireAdmin, (req, res) => {
     },
   });
 });
+
+// GET /api/admin/dashboard/stats (Requires valid JWT with role === 'ADMIN')
+router.get('/dashboard/stats', requireAuth, requireAdmin, getDashboardStats);
 
 export default router;
