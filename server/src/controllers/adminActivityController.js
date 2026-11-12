@@ -166,6 +166,7 @@ export const getActivitySummary = async (req, res, next) => {
       totalActions,
       last7Days,
       last30Days,
+      activeAdministrators,
       byActionTypeGroup,
       byTargetEntityGroup,
       topAdminsGroup,
@@ -173,6 +174,13 @@ export const getActivitySummary = async (req, res, next) => {
       prisma.adminAction.count(),
       prisma.adminAction.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
       prisma.adminAction.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      prisma.user.count({
+        where: {
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          deletedAt: null,
+        },
+      }),
       prisma.adminAction.groupBy({
         by: ['actionType'],
         _count: { id: true },
@@ -232,6 +240,7 @@ export const getActivitySummary = async (req, res, next) => {
         totalActions,
         activityLast7Days: last7Days,
         activityLast30Days: last30Days,
+        activeAdministrators,
         byActionType,
         byTargetEntity,
         topAdministrators,

@@ -259,8 +259,8 @@ export const adminService = {
   },
 
   /**
-   * Fetch aggregate audit activity summary (totals, 7/30-day metrics, breakdowns, top admins)
-   * @returns {Promise<{ totalActions: number, activityLast7Days: number, activityLast30Days: number, byActionType: object, byTargetEntity: object, topAdministrators: Array }>}
+   * Fetch aggregate audit activity summary (totals, 7/30-day metrics, active admins, breakdowns, top admins)
+   * @returns {Promise<{ totalActions: number, activityLast7Days: number, activityLast30Days: number, activeAdministrators: number, byActionType: object, byTargetEntity: object, topAdministrators: Array }>}
    */
   async getAdminActivitySummary() {
     return apiRequest('/admin/activity/summary')

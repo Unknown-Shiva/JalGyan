@@ -17,6 +17,7 @@
  * 13. Sensitive fields are not exposed (no password/hash in payload/admin select).
  * 14. Empty activity state works (query matching 0 records returns empty list and count 0).
  * 15. Dashboard, article moderation, user management, and report moderation remain functional.
+ * 16. Active Administrators KPI accurately counts active admins and excludes suspended, soft-deleted, and regular users.
  */
 
 import http from 'http';
@@ -271,13 +272,14 @@ async function runAdminActivityTests() {
         typeof sumData?.totalActions === 'number' &&
         typeof sumData?.activityLast7Days === 'number' &&
         typeof sumData?.activityLast30Days === 'number' &&
+        typeof sumData?.activeAdministrators === 'number' &&
         sumData?.byActionType &&
         typeof sumData?.byActionType === 'object' &&
         sumData?.byTargetEntity &&
         typeof sumData?.byTargetEntity === 'object' &&
         Array.isArray(sumData?.topAdministrators),
       'Requirement 11: Summary endpoint returns accurate aggregated activity statistics and distributions',
-      `Total: ${sumData?.totalActions}, 7d: ${sumData?.activityLast7Days}, 30d: ${sumData?.activityLast30Days}, TopAdmins: ${sumData?.topAdministrators?.length}`
+      `Total: ${sumData?.totalActions}, 7d: ${sumData?.activityLast7Days}, 30d: ${sumData?.activityLast30Days}, ActiveAdmins: ${sumData?.activeAdministrators}, TopAdmins: ${sumData?.topAdministrators?.length}`
     );
 
     // ── Requirement 12: Detail endpoint returns complete audit information ──
@@ -329,6 +331,98 @@ async function runAdminActivityTests() {
         repCheck.status === 200,
       'Requirement 15: Admin Dashboard, Article Moderation, User Management, and Report Moderation remain fully functional',
       `Dashboard: ${dashCheck.status}, Articles: ${artCheck.status}, Users: ${usrCheck.status}, Reports: ${repCheck.status}`
+    );
+
+    // ── Requirement 16: Active Administrators KPI accurately reflects DB state ──
+    const baselineSummaryReq = await request('GET', '/admin/activity/summary', null, adminToken);
+    const baselineActiveAdmins = baselineSummaryReq.payload?.data?.activeAdministrators;
+    const baselineTotalActions = baselineSummaryReq.payload?.data?.totalActions;
+    const baseline7Days = baselineSummaryReq.payload?.data?.activityLast7Days;
+    const baseline30Days = baselineSummaryReq.payload?.data?.activityLast30Days;
+
+    // Direct DB count to confirm baseline matches
+    const expectedInitialDbCount = await prisma.user.count({
+      where: {
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        deletedAt: null,
+      },
+    });
+    assert(
+      baselineActiveAdmins === expectedInitialDbCount,
+      'Requirement 16.1: activeAdministrators in summary exactly matches database count of active admins',
+      `Summary: ${baselineActiveAdmins}, DB: ${expectedInitialDbCount}`
+    );
+
+    // 1. Create an active admin -> SHOULD increment activeAdministrators by 1
+    const testAdminActive = await prisma.user.create({
+      data: {
+        name: 'KPI Test Active Admin',
+        email: `kpi_admin_active_${Date.now()}@jalgyan.test`,
+        password: hashed,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+      },
+    });
+    createdUserIds.push(testAdminActive.id);
+
+    // 2. Create a suspended admin -> SHOULD be excluded
+    const testAdminSuspended = await prisma.user.create({
+      data: {
+        name: 'KPI Test Suspended Admin',
+        email: `kpi_admin_susp_${Date.now()}@jalgyan.test`,
+        password: hashed,
+        role: 'ADMIN',
+        status: 'SUSPENDED',
+      },
+    });
+    createdUserIds.push(testAdminSuspended.id);
+
+    // 3. Create a soft-deleted admin -> SHOULD be excluded
+    const testAdminDeleted = await prisma.user.create({
+      data: {
+        name: 'KPI Test Deleted Admin',
+        email: `kpi_admin_del_${Date.now()}@jalgyan.test`,
+        password: hashed,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+        deletedAt: new Date(),
+      },
+    });
+    createdUserIds.push(testAdminDeleted.id);
+
+    // 4. Create an active regular user -> SHOULD be excluded
+    const testUserActive = await prisma.user.create({
+      data: {
+        name: 'KPI Test Active Regular User',
+        email: `kpi_user_act_${Date.now()}@jalgyan.test`,
+        password: hashed,
+        role: 'USER',
+        status: 'ACTIVE',
+      },
+    });
+    createdUserIds.push(testUserActive.id);
+
+    // Fetch summary after user creations
+    const postSummaryReq = await request('GET', '/admin/activity/summary', null, adminToken);
+    const postData = postSummaryReq.payload?.data;
+
+    assert(
+      postSummaryReq.status === 200 &&
+        postData?.activeAdministrators === baselineActiveAdmins + 1,
+      'Requirement 16.2: Active administrators counted; suspended, soft-deleted, and regular USERs excluded',
+      `Before: ${baselineActiveAdmins}, After: ${postData?.activeAdministrators} (Expected: ${baselineActiveAdmins + 1})`
+    );
+
+    assert(
+      postData?.totalActions === baselineTotalActions &&
+        postData?.activityLast7Days === baseline7Days &&
+        postData?.activityLast30Days === baseline30Days &&
+        typeof postData?.byActionType === 'object' &&
+        typeof postData?.byTargetEntity === 'object' &&
+        Array.isArray(postData?.topAdministrators),
+      'Requirement 16.3: Existing activity summary fields and distribution metrics remain unchanged',
+      `Actions match: ${postData?.totalActions === baselineTotalActions}, 7d match: ${postData?.activityLast7Days === baseline7Days}, 30d match: ${postData?.activityLast30Days === baseline30Days}`
     );
 
   } catch (err) {

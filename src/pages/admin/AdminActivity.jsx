@@ -197,6 +197,33 @@ export default function AdminActivity() {
       </header>
 
       {/* ── Summary Overview Metrics ───────────────────────────────────── */}
+      {loadingSummary && !summary && (
+        <section className="adm-section" aria-labelledby="section-summary-overview" aria-busy="true">
+          <div className="adm-stat-group">
+            <div className="adm-stat-card adm-stat-accent-blue">
+              <span className="adm-stat-label">Total Actions</span>
+              <strong className="adm-stat-value">…</strong>
+              <span className="adm-stat-sub">Lifetime logged</span>
+            </div>
+            <div className="adm-stat-card adm-stat-accent-green">
+              <span className="adm-stat-label">Last 7 Days</span>
+              <strong className="adm-stat-value">…</strong>
+              <span className="adm-stat-sub">Recent activity</span>
+            </div>
+            <div className="adm-stat-card adm-stat-accent-orange">
+              <span className="adm-stat-label">Last 30 Days</span>
+              <strong className="adm-stat-value">…</strong>
+              <span className="adm-stat-sub">Monthly activity</span>
+            </div>
+            <div className="adm-stat-card adm-stat-accent-muted">
+              <span className="adm-stat-label">Active Administrators</span>
+              <strong className="adm-stat-value">…</strong>
+              <span className="adm-stat-sub">Active admin accounts</span>
+            </div>
+          </div>
+        </section>
+      )}
+
       {summary && (
         <section className="adm-section" aria-labelledby="section-summary-overview">
           <div className="adm-stat-group">
@@ -220,8 +247,8 @@ export default function AdminActivity() {
 
             <div className="adm-stat-card adm-stat-accent-muted">
               <span className="adm-stat-label">Active Administrators</span>
-              <strong className="adm-stat-value">{topAdmins.length}</strong>
-              <span className="adm-stat-sub">Logged actions</span>
+              <strong className="adm-stat-value">{formatINNumber(summary.activeAdministrators)}</strong>
+              <span className="adm-stat-sub">Active admin accounts</span>
             </div>
           </div>
 
