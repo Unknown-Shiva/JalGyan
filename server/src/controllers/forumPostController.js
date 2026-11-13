@@ -61,3 +61,39 @@ export const listForumPosts = async (req, res, next) => {
     return next(error);
   }
 };
+
+export const getForumPost = async (req, res, next) => {
+  try {
+    const post = await prisma.forumPost.findFirst({
+      where: { id: req.params.id, deletedAt: null, author: { deletedAt: null, status: 'ACTIVE' } },
+      select: {
+        id: true, title: true, body: true, category: true, tags: true,
+        upvotesCount: true, downvotesCount: true, netVoteScore: true, commentsCount: true,
+        createdAt: true, updatedAt: true,
+        author: { select: { id: true, name: true, location: true } },
+        comments: {
+          where: { parentId: null, deletedAt: null, author: { deletedAt: null, status: 'ACTIVE' } },
+          orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+          select: {
+            id: true, text: true, postId: true, parentId: true, createdAt: true,
+            author: { select: { id: true, name: true, location: true } },
+            replies: {
+              where: { postId: req.params.id, deletedAt: null, author: { deletedAt: null, status: 'ACTIVE' } },
+              orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+              select: {
+                id: true, text: true, postId: true, parentId: true, createdAt: true,
+                author: { select: { id: true, name: true, location: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!post) return res.status(404).json({ success: false, message: 'Discussion not found.' });
+    const { upvotesCount, downvotesCount, netVoteScore, ...details } = post;
+    return res.json({ success: true, data: { post: {
+      ...details,
+      votes: { upvotes: upvotesCount, downvotes: downvotesCount, score: netVoteScore },
+    } } });
+  } catch (error) { return next(error); }
+};
