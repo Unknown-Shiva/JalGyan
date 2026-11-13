@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { listForumPosts, getForumPost, createForumPost, updateForumPost, deleteForumPost } from '../controllers/forumPostController.js';
-import { requireAuth } from '../middleware/authMiddleware.js';
+import { requireAuth, optionalAuth } from '../middleware/authMiddleware.js';
 import { createPostComment } from '../controllers/forumCommentController.js';
 import { togglePostVote } from '../controllers/forumVoteController.js';
 
 const router = Router();
-router.get('/', listForumPosts);
-router.get('/:id', getForumPost);
+router.get('/', optionalAuth, listForumPosts);
+router.get('/:id', optionalAuth, getForumPost);
 router.post('/', requireAuth, createForumPost);
 router.post('/:id/comments', requireAuth, createPostComment);
 router.post('/:id/vote', requireAuth, togglePostVote);

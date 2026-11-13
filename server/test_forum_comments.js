@@ -79,7 +79,7 @@ try {
   assert.equal((await call('DELETE',`/comments/${parentId}`,'u2')).status,404);
   assert.equal((await call('DELETE',`/comments/${parentId}`,'u1')).status,200);
   assert.ok(comments.get(parentId).deletedAt instanceof Date);
-  const detail = await call('GET','/posts/p1','u3');
+  const detail = await call('GET','/posts/p1',null);
   assert.equal(detail.status,200); assert.equal(detail.body.data.post.comments.some(c=>c.id===parentId),false);
   assert.equal(comments.get(reply.body.data.comment.id).deletedAt,null,'soft deletion preserves the reply record');
   assert.equal((await call('DELETE',`/comments/${reply.body.data.comment.id}`,'u2')).status,200);

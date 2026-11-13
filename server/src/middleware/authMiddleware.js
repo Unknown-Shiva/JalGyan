@@ -65,3 +65,20 @@ export const requireAuth = async (req, res, next) => {
     next(error);
   }
 };
+
+// Public forum reads may optionally personalize responses for a valid session.
+// Invalid or stale credentials are treated as a guest request, preserving public access.
+export const optionalAuth = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) return next();
+  try {
+    const decoded = verifyToken(authHeader.slice(7));
+    if (!decoded?.id) return next();
+    const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+    if (user && user.deletedAt === null && user.status === 'ACTIVE') req.user = sanitizeUser(user);
+    return next();
+  } catch (error) {
+    if (error?.name === 'JsonWebTokenError' || error?.name === 'TokenExpiredError' || error?.name === 'NotBeforeError') return next();
+    return next(error);
+  }
+};

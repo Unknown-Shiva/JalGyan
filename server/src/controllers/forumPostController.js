@@ -88,9 +88,18 @@ export const listForumPosts = async (req, res, next) => {
         },
       }),
     ]);
+    let voteByPost = new Map();
+    if (req.user?.id && posts.length) {
+      const votes = await prisma.vote.findMany({
+        where: { userId: req.user.id, postId: { in: posts.map(post => post.id) } },
+        select: { postId: true, type: true },
+      });
+      voteByPost = new Map(votes.map(vote => [vote.postId, vote.type]));
+    }
+    const personalizedPosts = posts.map(post => ({ ...post, currentUserVote: voteByPost.get(post.id) ?? null }));
     const totalPages = Math.ceil(total / limit);
     return res.json({ success: true, data: {
-      posts,
+      posts: personalizedPosts,
       pagination: { page, limit, total, totalPages, hasNextPage: page < totalPages, hasPreviousPage: page > 1 && total > 0 },
     } });
   } catch (error) {
@@ -127,9 +136,13 @@ export const getForumPost = async (req, res, next) => {
       },
     });
     if (!post) return res.status(404).json({ success: false, message: 'Discussion not found.' });
+    const currentVote = req.user?.id
+      ? await prisma.vote.findUnique({ where: { userId_postId: { userId: req.user.id, postId: post.id } }, select: { type: true } })
+      : null;
     const { upvotesCount, downvotesCount, netVoteScore, ...details } = post;
     return res.json({ success: true, data: { post: {
       ...details,
+      currentUserVote: currentVote?.type ?? null,
       votes: { upvotes: upvotesCount, downvotes: downvotesCount, score: netVoteScore },
     } } });
   } catch (error) { return next(error); }
