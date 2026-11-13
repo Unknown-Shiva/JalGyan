@@ -2,6 +2,40 @@ import { prisma } from '../config/db.js';
 import { sanitizeUser } from '../utils/sanitizeUser.js';
 
 const POST_CATEGORIES = ['Community', 'Agriculture', 'Rainwater', 'Household', 'Groundwater'];
+const POST_EDITABLE_FIELDS = ['title', 'body', 'category', 'tags'];
+
+function validatePostChanges(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length === 0) {
+    return { error: 'Provide at least one discussion field to update.' };
+  }
+  const unsupported = Object.keys(body).find(key => !POST_EDITABLE_FIELDS.includes(key));
+  if (unsupported) return { error: `Unsupported field: ${unsupported}.` };
+  const data = {};
+  if (Object.hasOwn(body, 'title')) {
+    if (typeof body.title !== 'string' || body.title.trim().length < 8 || body.title.trim().length > 120) return { error: 'Title must be between 8 and 120 characters.' };
+    data.title = body.title.trim();
+  }
+  if (Object.hasOwn(body, 'body')) {
+    if (typeof body.body !== 'string' || body.body.trim().length < 20 || body.body.trim().length > 5000) return { error: 'Discussion details must be between 20 and 5,000 characters.' };
+    data.body = body.body.trim();
+  }
+  if (Object.hasOwn(body, 'category')) {
+    if (typeof body.category !== 'string' || !POST_CATEGORIES.includes(body.category.trim())) return { error: `Category must be one of: ${POST_CATEGORIES.join(', ')}.` };
+    data.category = body.category.trim();
+  }
+  if (Object.hasOwn(body, 'tags')) {
+    if (!Array.isArray(body.tags) || body.tags.length > 10 || body.tags.some(tag => typeof tag !== 'string' || !tag.trim() || tag.trim().length > 40)) return { error: 'Tags must be an array of up to 10 non-empty strings, each no more than 40 characters.' };
+    data.tags = body.tags.map(tag => tag.trim());
+  }
+  return { data };
+}
+
+const postResponseSelect = {
+  id: true, title: true, body: true, category: true, tags: true,
+  upvotesCount: true, downvotesCount: true, netVoteScore: true, commentsCount: true,
+  createdAt: true, updatedAt: true,
+  author: { select: { id: true, name: true, location: true } },
+};
 
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
@@ -141,4 +175,33 @@ export const createForumPost = async (req, res, next) => {
     if (error?.code) return res.status(500).json({ success: false, message: 'Could not create discussion right now.' });
     return next(error);
   }
+};
+
+export const updateForumPost = async (req, res, next) => {
+  try {
+    const { data, error } = validatePostChanges(req.body);
+    if (error) return res.status(400).json({ success: false, message: error });
+    const result = await prisma.forumPost.updateMany({
+      where: { id: req.params.id, authorId: req.user.id, deletedAt: null },
+      data,
+    });
+    if (result.count === 0) return res.status(404).json({ success: false, message: 'Discussion not found.' });
+    const post = await prisma.forumPost.findFirst({
+      where: { id: req.params.id, authorId: req.user.id, deletedAt: null, author: { deletedAt: null, status: 'ACTIVE' } },
+      select: postResponseSelect,
+    });
+    if (!post) return res.status(404).json({ success: false, message: 'Discussion not found.' });
+    return res.json({ success: true, message: 'Discussion updated.', data: { post } });
+  } catch (error) { return next(error); }
+};
+
+export const deleteForumPost = async (req, res, next) => {
+  try {
+    const result = await prisma.forumPost.updateMany({
+      where: { id: req.params.id, authorId: req.user.id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (result.count === 0) return res.status(404).json({ success: false, message: 'Discussion not found.' });
+    return res.json({ success: true, message: 'Discussion deleted.', data: { id: req.params.id } });
+  } catch (error) { return next(error); }
 };
