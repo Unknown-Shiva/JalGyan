@@ -25,12 +25,12 @@ export const authService = {
    * @param {object} payload
    */
   async register(payload) {
-    if (!payload?.name || !payload?.email || !payload?.password) {
+    if (!payload?.name?.trim?.() || !payload?.email?.trim?.() || !payload?.password) {
       throw new Error('Complete all required fields.')
     }
     const data = await apiRequest('/auth/register', {
       method: 'POST',
-      body: payload,
+      body: { name: payload.name.trim(), email: payload.email.trim(), password: payload.password, ...(payload.location?.trim() ? { location: payload.location.trim() } : {}) },
     })
     return data
   },
