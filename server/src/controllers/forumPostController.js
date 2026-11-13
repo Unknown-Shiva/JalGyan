@@ -1,4 +1,7 @@
 import { prisma } from '../config/db.js';
+import { sanitizeUser } from '../utils/sanitizeUser.js';
+
+const POST_CATEGORIES = ['Community', 'Agriculture', 'Rainwater', 'Household', 'Groundwater'];
 
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
@@ -96,4 +99,46 @@ export const getForumPost = async (req, res, next) => {
       votes: { upvotes: upvotesCount, downvotes: downvotesCount, score: netVoteScore },
     } } });
   } catch (error) { return next(error); }
+};
+
+export const createForumPost = async (req, res, next) => {
+  try {
+    const body = req.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return res.status(400).json({ success: false, message: 'Provide a valid discussion object.' });
+    }
+    const allowed = ['title', 'body', 'category', 'tags'];
+    const unsupported = Object.keys(body).find(key => !allowed.includes(key));
+    if (unsupported) return res.status(400).json({ success: false, message: `Unsupported field: ${unsupported}.` });
+    if (typeof body.title !== 'string' || body.title.trim().length < 8 || body.title.trim().length > 120) {
+      return res.status(400).json({ success: false, message: 'Title must be between 8 and 120 characters.' });
+    }
+    if (typeof body.body !== 'string' || body.body.trim().length < 20 || body.body.trim().length > 5000) {
+      return res.status(400).json({ success: false, message: 'Discussion details must be between 20 and 5,000 characters.' });
+    }
+    if (typeof body.category !== 'string' || !POST_CATEGORIES.includes(body.category.trim())) {
+      return res.status(400).json({ success: false, message: `Category must be one of: ${POST_CATEGORIES.join(', ')}.` });
+    }
+    const tags = body.tags ?? [];
+    if (!Array.isArray(tags) || tags.length > 10 || tags.some(tag => typeof tag !== 'string' || !tag.trim() || tag.trim().length > 40)) {
+      return res.status(400).json({ success: false, message: 'Tags must be an array of up to 10 non-empty strings, each no more than 40 characters.' });
+    }
+    const post = await prisma.forumPost.create({
+      data: {
+        title: body.title.trim(), body: body.body.trim(), category: body.category.trim(),
+        tags: tags.map(tag => tag.trim()), authorId: req.user.id,
+      },
+      select: {
+        id: true, title: true, body: true, category: true, tags: true,
+        upvotesCount: true, downvotesCount: true, netVoteScore: true, commentsCount: true,
+        createdAt: true, updatedAt: true,
+        author: { select: { id: true, name: true, location: true } },
+      },
+    });
+    return res.status(201).json({ success: true, message: 'Discussion created.', data: { post: { ...post, author: sanitizeUser(post.author) } } });
+  } catch (error) {
+    // Keep database implementation details out of client responses.
+    if (error?.code) return res.status(500).json({ success: false, message: 'Could not create discussion right now.' });
+    return next(error);
+  }
 };
