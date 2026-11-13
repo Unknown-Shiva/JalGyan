@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login, register, getMe, updateMe } from '../controllers/authController.js';
+import { login, register, getMe, updateMe, getMyActivity } from '../controllers/authController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -12,6 +12,7 @@ router.post('/register', register);
 
 // GET /api/auth/me (Protected)
 router.get('/me', requireAuth, getMe);
+router.get('/me/activity', requireAuth, getMyActivity);
 router.patch('/me', requireAuth, updateMe);
 
 export default router;

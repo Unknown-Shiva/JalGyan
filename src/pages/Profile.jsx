@@ -2,12 +2,20 @@ import { useEffect, useState } from 'react'
 import { MapPin, CalendarDays, Edit3, Droplets } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import Avatar from '../components/common/Avatar'
+import { authService } from '../services/authService'
 
 export default function Profile() {
   const { user, saveProfile } = useAuth()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ name: user?.name || '', location: user?.location || '', bio: user?.bio || '' })
   const [saving, setSaving] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('')
+  const [activity, setActivity] = useState(null), [activityError, setActivityError] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    authService.getMyActivity().then(data => { if (active) setActivity(data) }).catch(() => { if (active) setActivityError(true) })
+    return () => { active = false }
+  }, [])
 
   useEffect(() => {
     setForm({ name: user?.name || '', location: user?.location || '', bio: user?.bio || '' })
@@ -33,5 +41,5 @@ export default function Profile() {
   return <div className="profile-page"><div className="profile-cover"></div><section className="profile-card"><div className="profile-top"><Avatar initials={initials} size="large"/><div className="profile-identity"><h1>{user?.name}</h1><span><MapPin size={14}/> {user?.location || 'Location not added'}</span></div><button className="button button-outline edit-profile" onClick={() => { editing ? cancel() : setEditing(true); setNotice('') }} disabled={saving}><Edit3 size={15}/>{editing ? 'Cancel' : 'Edit profile'}</button></div>
     {error && <div className="alert-error" role="alert">{error}</div>}{notice && <div className="alert-success" role="status">{notice}</div>}
     {editing ? <form className="profile-edit-form" onSubmit={save}><label>Name<input name="name" value={form.name} onChange={change} maxLength={100} required/></label><label>Location<input name="location" value={form.location} onChange={change} maxLength={120}/></label><label>About<textarea name="bio" rows="3" value={form.bio} onChange={change} maxLength={1000}/></label><button className="button button-primary" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button></form> : <p className="profile-bio">{user?.bio || 'Add a short introduction to your profile.'}</p>}
-    <div className="profile-meta"><span><CalendarDays size={15}/> Member since {user?.createdAt ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(user.createdAt)) : '—'}</span><span><Droplets size={15}/> WaterWise community member</span></div><div className="profile-metrics"><div><strong>4</strong><span>Discussions</span></div><div><strong>12</strong><span>Helpful votes</span></div><div><strong>2</strong><span>Saved resources</span></div></div></section></div>
+    <div className="profile-meta"><span><CalendarDays size={15}/> Member since {user?.createdAt ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(user.createdAt)) : '—'}</span><span><Droplets size={15}/> WaterWise community member</span></div><div className="profile-metrics" aria-live="polite">{activityError ? <span role="alert">Activity metrics are unavailable.</span> : !activity ? <span>Loading activity…</span> : <><div><strong>{activity.postsCount ?? 0}</strong><span>Discussions</span></div><div><strong>{activity.votesCount ?? 0}</strong><span>Helpful votes</span></div><div><strong>{activity.bookmarksCount ?? 0}</strong><span>Saved resources</span></div></>}</div>{activity && <small className="profile-activity-comments">{activity.commentsCount ?? 0} comments and replies</small>}</section></div>
 }

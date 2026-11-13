@@ -48,4 +48,9 @@ export const authService = {
     const data = await apiRequest('/auth/me', { method: 'PATCH', body: profile })
     return data.user || data
   },
+
+  async getMyActivity() {
+    const data = await apiRequest('/auth/me/activity')
+    return data.activity || data
+  },
 }

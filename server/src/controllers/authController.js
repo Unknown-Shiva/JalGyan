@@ -252,3 +252,16 @@ export const updateMe = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getMyActivity = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const [postsCount, commentsCount, bookmarksCount, votesCount] = await Promise.all([
+      prisma.forumPost.count({ where: { authorId: userId, deletedAt: null } }),
+      prisma.comment.count({ where: { authorId: userId, deletedAt: null, post: { deletedAt: null } } }),
+      prisma.bookmark.count({ where: { userId, article: { status: 'PUBLISHED', deletedAt: null } } }),
+      prisma.vote.count({ where: { userId, post: { deletedAt: null } } }),
+    ]);
+    return res.status(200).json({ success: true, data: { activity: { postsCount, commentsCount, bookmarksCount, votesCount } } });
+  } catch (error) { next(error); }
+};
