@@ -1,105 +1,81 @@
-import { createContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { authService } from '../services/authService'
 
 export const AuthContext = createContext(null)
 
+const readToken = () => { try { return localStorage.getItem('ww_token') } catch { return null } }
+const readCachedUser = () => { try { return JSON.parse(localStorage.getItem('ww_user')) } catch { return null } }
+const clearStoredSession = () => { try { localStorage.removeItem('ww_token'); localStorage.removeItem('ww_user') } catch {} }
+const storeSession = (token, user) => {
+  if (!token || !user) throw new Error('The authentication response was incomplete. Please try again.')
+  localStorage.setItem('ww_token', token)
+  localStorage.setItem('ww_user', JSON.stringify(user))
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('ww_user'))
-    } catch {
-      return null
-    }
-  })
+  const [token, setToken] = useState(readToken)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const revision = useRef(0)
 
-  // Start in loading state if a token is present to allow background verification
-  const [loading, setLoading] = useState(() => {
-    try {
-      return Boolean(localStorage.getItem('ww_token'))
-    } catch {
-      return false
-    }
-  })
+  const clearSession = useCallback(() => {
+    revision.current += 1
+    clearStoredSession()
+    setToken(null)
+    setUser(null)
+    setLoading(false)
+  }, [])
 
-  // Verify session on initial application load
   useEffect(() => {
-    let isMounted = true
-
-    const verifySession = async () => {
-      const token = localStorage.getItem('ww_token')
-      if (!token) {
-        setUser(null)
-        localStorage.removeItem('ww_user')
-        if (isMounted) setLoading(false)
-        return
-      }
-
-      try {
-        const freshUser = await authService.me()
-        if (isMounted) {
-          setUser(freshUser)
-          localStorage.setItem('ww_user', JSON.stringify(freshUser))
-        }
-      } catch (err) {
-        // Token invalid, expired, or account suspended
-        if (isMounted) {
-          localStorage.removeItem('ww_token')
-          localStorage.removeItem('ww_user')
-          setUser(null)
-        }
-      } finally {
-        if (isMounted) setLoading(false)
-      }
+    let active = true
+    const startupRevision = revision.current
+    const currentToken = readToken()
+    if (!currentToken) {
+      clearStoredSession()
+      setToken(null); setUser(null); setLoading(false)
+      return () => { active = false }
     }
+    setToken(currentToken)
+    authService.me().then(freshUser => {
+      if (!active || startupRevision !== revision.current || readToken() !== currentToken) return
+      storeSession(currentToken, freshUser)
+      setToken(currentToken); setUser(freshUser)
+    }).catch(() => {
+      if (active && startupRevision === revision.current && readToken() === currentToken) clearSession()
+    }).finally(() => {
+      if (active && startupRevision === revision.current) setLoading(false)
+    })
+    return () => { active = false }
+  }, [clearSession])
 
-    verifySession()
+  useEffect(() => {
+    const onUnauthorized = () => clearSession()
+    window.addEventListener('ww:unauthorized', onUnauthorized)
+    return () => window.removeEventListener('ww:unauthorized', onUnauthorized)
+  }, [clearSession])
 
-    return () => {
-      isMounted = false
-    }
+  const authenticate = useCallback(async (method, payload) => {
+    const actionRevision = ++revision.current
+    const result = await authService[method](payload)
+    if (actionRevision !== revision.current) return result
+    storeSession(result?.token, result?.user)
+    setToken(result.token); setUser(result.user); setLoading(false)
+    return result
   }, [])
 
   const value = useMemo(() => ({
-    user,
-    loading,
+    user, token, isAuthenticated: Boolean(token && user), loading,
     isAdmin: user?.role === 'ADMIN',
-    login: async (credentials) => {
-      const result = await authService.login(credentials)
-      if (result?.token) {
-        localStorage.setItem('ww_token', result.token)
-      }
-      if (result?.user) {
-        localStorage.setItem('ww_user', JSON.stringify(result.user))
-        setUser(result.user)
-      }
-      return result
-    },
-    register: async (payload) => {
-      const result = await authService.register(payload)
-      if (result?.token) {
-        localStorage.setItem('ww_token', result.token)
-      }
-      if (result?.user) {
-        localStorage.setItem('ww_user', JSON.stringify(result.user))
-        setUser(result.user)
-      }
-      return result
-    },
-    logout: () => {
-      localStorage.removeItem('ww_token')
-      localStorage.removeItem('ww_user')
-      setUser(null)
-    },
-    updateUser: (updates) => {
-      setUser((current) => {
-        const next = current ? { ...current, ...updates } : null
-        if (next) {
-          localStorage.setItem('ww_user', JSON.stringify(next))
-        }
-        return next
-      })
-    },
-  }), [user, loading])
+    login: credentials => authenticate('login', credentials),
+    register: payload => authenticate('register', payload),
+    logout: clearSession,
+    updateUser: updates => setUser(current => {
+      if (!current) return null
+      const next = { ...current, ...updates }
+      try { localStorage.setItem('ww_user', JSON.stringify(next)) } catch {}
+      return next
+    }),
+  }), [user, token, loading, authenticate, clearSession])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

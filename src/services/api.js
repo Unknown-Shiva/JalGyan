@@ -25,10 +25,12 @@ export async function apiRequest(path, options = {}) {
   const payload = await response.json().catch(() => ({}))
 
   if (!response.ok) {
-    // If unauthorized on protected routes, purge stale session without causing hard redirects
-    if (response.status === 401 && path !== '/auth/login' && typeof window !== 'undefined') {
+    // Public authentication calls should not invalidate an existing session.
+    const isPublicAuthRequest = path === '/auth/login' || path === '/auth/register'
+    if (response.status === 401 && !isPublicAuthRequest && typeof window !== 'undefined') {
       localStorage.removeItem('ww_token')
       localStorage.removeItem('ww_user')
+      window.dispatchEvent(new Event('ww:unauthorized'))
     }
     const error = new Error(payload.message || 'Request failed')
     error.status = response.status
