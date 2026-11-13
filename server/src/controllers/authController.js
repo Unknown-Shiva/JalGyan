@@ -201,3 +201,54 @@ export const getMe = async (req, res) => {
     },
   });
 };
+
+export const updateMe = async (req, res, next) => {
+  try {
+    const body = req.body;
+    const allowedFields = ['name', 'location', 'bio'];
+    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length === 0) {
+      return res.status(400).json({ success: false, message: 'Provide at least one profile field to update.' });
+    }
+    const unsupported = Object.keys(body).filter((key) => !allowedFields.includes(key));
+    if (unsupported.length) {
+      return res.status(400).json({ success: false, message: `Unsupported profile field: ${unsupported[0]}.` });
+    }
+
+    const data = {};
+    if (Object.hasOwn(body, 'name')) {
+      if (typeof body.name !== 'string' || !body.name.trim() || body.name.trim().length > 100) {
+        return res.status(400).json({ success: false, message: 'Name must be between 1 and 100 characters.' });
+      }
+      data.name = body.name.trim();
+    }
+    for (const field of ['location', 'bio']) {
+      if (!Object.hasOwn(body, field)) continue;
+      if (body[field] !== null && typeof body[field] !== 'string') {
+        return res.status(400).json({ success: false, message: `${field} must be a string or null.` });
+      }
+      const value = body[field]?.trim() || null;
+      const maxLength = field === 'location' ? 120 : 1000;
+      if (value && value.length > maxLength) {
+        return res.status(400).json({ success: false, message: `${field} must be ${maxLength} characters or fewer.` });
+      }
+      data[field] = value;
+    }
+
+    const result = await prisma.user.updateMany({
+      where: { id: req.user.id, deletedAt: null, status: 'ACTIVE' },
+      data,
+    });
+    if (result.count === 0) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully.',
+      data: { user: sanitizeUser(user) },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -63,11 +63,19 @@ export function AuthProvider({ children }) {
     return result
   }, [])
 
+  const saveProfile = useCallback(async (profile) => {
+    const updatedUser = await authService.updateMe(profile)
+    setUser(updatedUser)
+    try { localStorage.setItem('ww_user', JSON.stringify(updatedUser)) } catch {}
+    return updatedUser
+  }, [])
+
   const value = useMemo(() => ({
     user, token, isAuthenticated: Boolean(token && user), loading,
     isAdmin: user?.role === 'ADMIN',
     login: credentials => authenticate('login', credentials),
     register: payload => authenticate('register', payload),
+    saveProfile,
     logout: clearSession,
     updateUser: updates => setUser(current => {
       if (!current) return null
@@ -75,7 +83,7 @@ export function AuthProvider({ children }) {
       try { localStorage.setItem('ww_user', JSON.stringify(next)) } catch {}
       return next
     }),
-  }), [user, token, loading, authenticate, clearSession])
+  }), [user, token, loading, authenticate, clearSession, saveProfile])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

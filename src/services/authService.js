@@ -43,4 +43,9 @@ export const authService = {
     const data = await apiRequest('/auth/me')
     return data.user || data
   },
+
+  async updateMe(profile) {
+    const data = await apiRequest('/auth/me', { method: 'PATCH', body: profile })
+    return data.user || data
+  },
 }
