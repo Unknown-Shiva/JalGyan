@@ -4,6 +4,7 @@ import {
   getArticleBySlugOrId,
   createArticle,
   updateArticle,
+  deleteArticle,
 } from '../controllers/articleController.js';
 import { optionalAuth, requireAuth } from '../middleware/authMiddleware.js';
 
@@ -14,5 +15,6 @@ router.get('/:slugOrId', optionalAuth, getArticleBySlugOrId);
 router.post('/', requireAuth, createArticle);
 router.put('/:id', requireAuth, updateArticle);
 router.patch('/:id', requireAuth, updateArticle);
+router.delete('/:id', requireAuth, deleteArticle);
 
 export default router;

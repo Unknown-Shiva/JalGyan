@@ -683,3 +683,56 @@ export const updateArticle = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * DELETE /api/articles/:id
+ * Soft delete an article (author or admin only)
+ */
+export const deleteArticle = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user.id;
+    const currentUserRole = req.user.role;
+
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid article ID provided.',
+      });
+    }
+
+    const article = await prisma.article.findFirst({
+      where: { id: id.trim(), deletedAt: null },
+    });
+
+    if (!article) {
+      return res.status(404).json({
+        success: false,
+        message: 'Article not found.',
+      });
+    }
+
+    const isAuthor = article.authorId === currentUserId;
+    const isAdmin = currentUserRole === 'ADMIN';
+
+    if (!isAuthor && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete this article.',
+      });
+    }
+
+    await prisma.article.update({
+      where: { id: article.id },
+      data: { deletedAt: new Date() },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Article deleted successfully.',
+      data: { id: article.id },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
