@@ -6,6 +6,7 @@ import forumRoutes from './forumRoutes.js';
 import commentRoutes from './commentRoutes.js';
 import bookmarkRoutes from './bookmarkRoutes.js';
 import userReportRoutes from './userReportRoutes.js';
+import categoryRoutes from './categoryRoutes.js';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use('/posts', forumRoutes);
 router.use('/comments', commentRoutes);
 router.use('/bookmarks', bookmarkRoutes);
 router.use('/reports', userReportRoutes);
+router.use('/categories', categoryRoutes);
 
 export default router;
