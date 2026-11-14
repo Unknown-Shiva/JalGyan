@@ -187,3 +187,160 @@ export const listArticles = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * GET /api/articles/:slugOrId
+ * Retrieve detailed article by slug or ID with view increment, resources, and bookmark status
+ */
+export const getArticleBySlugOrId = async (req, res, next) => {
+  try {
+    const { slugOrId } = req.params;
+
+    if (!slugOrId || typeof slugOrId !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid article identifier.',
+      });
+    }
+
+    const trimmed = slugOrId.trim();
+    const currentUserId = req.user?.id || null;
+    const currentUserRole = req.user?.role || null;
+
+    // Find article by slug or id
+    const article = await prisma.article.findFirst({
+      where: {
+        OR: [{ slug: trimmed.toLowerCase() }, { id: trimmed }],
+        deletedAt: null,
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            location: true,
+            bio: true,
+          },
+        },
+        resources: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            title: true,
+            url: true,
+            type: true,
+            createdAt: true,
+          },
+        },
+        _count: {
+          select: {
+            bookmarks: true,
+          },
+        },
+      },
+    });
+
+    if (!article) {
+      return res.status(404).json({
+        success: false,
+        message: 'Article not found.',
+      });
+    }
+
+    // Access control: if not published, only the author or admin can view
+    const isAuthor = currentUserId && article.authorId === currentUserId;
+    const isAdmin = currentUserRole === 'ADMIN';
+    if (article.status !== 'PUBLISHED' && !isAuthor && !isAdmin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Article not found.',
+      });
+    }
+
+    // Increment viewsCount atomically if article is published
+    if (article.status === 'PUBLISHED') {
+      try {
+        await prisma.article.update({
+          where: { id: article.id },
+          data: { viewsCount: { increment: 1 } },
+        });
+        article.viewsCount += 1;
+      } catch (e) {
+        // Ignore view count failure non-critically
+      }
+    }
+
+    // Check if authenticated user has bookmarked this article
+    let isBookmarked = false;
+    if (currentUserId) {
+      const bookmark = await prisma.bookmark.findUnique({
+        where: {
+          userId_articleId: {
+            userId: currentUserId,
+            articleId: article.id,
+          },
+        },
+        select: { id: true },
+      });
+      isBookmarked = Boolean(bookmark);
+    }
+
+    // Fetch up to 3 related articles in the same category
+    const relatedArticles = await prisma.article.findMany({
+      where: {
+        categoryId: article.categoryId,
+        id: { not: article.id },
+        status: 'PUBLISHED',
+        deletedAt: null,
+      },
+      take: 3,
+      orderBy: { viewsCount: 'desc' },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        summary: true,
+        readTime: true,
+        coverImage: true,
+        viewsCount: true,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        article: {
+          id: article.id,
+          title: article.title,
+          slug: article.slug,
+          summary: article.summary,
+          content: article.content,
+          readTime: article.readTime,
+          coverImage: article.coverImage,
+          viewsCount: article.viewsCount,
+          status: article.status,
+          rejectionReason: isAuthor || isAdmin ? article.rejectionReason : null,
+          publishedAt: article.publishedAt || article.createdAt,
+          createdAt: article.createdAt,
+          updatedAt: article.updatedAt,
+          category: article.category,
+          author: article.author,
+          resources: article.resources,
+          bookmarksCount: article._count?.bookmarks ?? 0,
+          isBookmarked,
+        },
+        relatedArticles,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
