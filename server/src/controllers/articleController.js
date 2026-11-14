@@ -736,3 +736,179 @@ export const deleteArticle = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * GET /api/articles/my
+ * Retrieve all articles authored by the authenticated user with status breakdown and stats
+ */
+export const getMyArticles = async (req, res, next) => {
+  try {
+    const authorId = req.user.id;
+    const { status } = req.query;
+
+    const where = {
+      authorId,
+      deletedAt: null,
+    };
+
+    if (status && ['DRAFT', 'PENDING_REVIEW', 'PUBLISHED', 'REJECTED'].includes(status.toUpperCase())) {
+      where.status = status.toUpperCase();
+    }
+
+    const [articles, allUserArticles] = await Promise.all([
+      prisma.article.findMany({
+        where,
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          resources: {
+            select: {
+              id: true,
+              title: true,
+              url: true,
+              type: true,
+            },
+          },
+          reviews: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              feedback: true,
+              createdAt: true,
+              reviewer: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              bookmarks: true,
+            },
+          },
+        },
+      }),
+      prisma.article.findMany({
+        where: { authorId, deletedAt: null },
+        select: { status: true, viewsCount: true },
+      }),
+    ]);
+
+    // Calculate aggregated author statistics
+    const stats = {
+      total: allUserArticles.length,
+      published: allUserArticles.filter((a) => a.status === 'PUBLISHED').length,
+      pending: allUserArticles.filter((a) => a.status === 'PENDING_REVIEW').length,
+      drafts: allUserArticles.filter((a) => a.status === 'DRAFT').length,
+      rejected: allUserArticles.filter((a) => a.status === 'REJECTED').length,
+      totalViews: allUserArticles.reduce((sum, a) => sum + (a.viewsCount || 0), 0),
+    };
+
+    const formatted = articles.map((art) => ({
+      id: art.id,
+      title: art.title,
+      slug: art.slug,
+      summary: art.summary,
+      content: art.content,
+      coverImage: art.coverImage,
+      readTime: art.readTime,
+      status: art.status,
+      rejectionReason: art.rejectionReason,
+      latestFeedback: art.reviews[0]?.feedback || art.rejectionReason,
+      viewsCount: art.viewsCount,
+      bookmarksCount: art._count?.bookmarks ?? 0,
+      category: art.category,
+      resources: art.resources,
+      publishedAt: art.publishedAt,
+      createdAt: art.createdAt,
+      updatedAt: art.updatedAt,
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        articles: formatted,
+        stats,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * PATCH /api/articles/:id/submit
+ * Author quick action: Move a draft or rejected article to PENDING_REVIEW
+ */
+export const submitArticleForReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const authorId = req.user.id;
+
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid article ID provided.',
+      });
+    }
+
+    const article = await prisma.article.findFirst({
+      where: { id: id.trim(), deletedAt: null },
+    });
+
+    if (!article) {
+      return res.status(404).json({
+        success: false,
+        message: 'Article not found.',
+      });
+    }
+
+    if (article.authorId !== authorId && req.user.role !== 'ADMIN') {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to submit this article.',
+      });
+    }
+
+    if (article.status === 'PUBLISHED') {
+      return res.status(400).json({
+        success: false,
+        message: 'This article is already published.',
+      });
+    }
+
+    if (article.status === 'PENDING_REVIEW') {
+      return res.status(400).json({
+        success: false,
+        message: 'This article is already pending review.',
+      });
+    }
+
+    const updated = await prisma.article.update({
+      where: { id: article.id },
+      data: {
+        status: 'PENDING_REVIEW',
+        rejectionReason: null,
+      },
+      include: {
+        category: true,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Article has been queued for editorial review.',
+      data: { article: updated },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
