@@ -5,6 +5,7 @@ import adminRoutes from './adminRoutes.js';
 import forumRoutes from './forumRoutes.js';
 import commentRoutes from './commentRoutes.js';
 import bookmarkRoutes from './bookmarkRoutes.js';
+import userReportRoutes from './userReportRoutes.js';
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use('/admin', adminRoutes);
 router.use('/posts', forumRoutes);
 router.use('/comments', commentRoutes);
 router.use('/bookmarks', bookmarkRoutes);
+router.use('/reports', userReportRoutes);
 
 export default router;
