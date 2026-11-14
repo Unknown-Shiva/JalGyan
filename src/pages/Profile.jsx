@@ -3,9 +3,11 @@ import { MapPin, CalendarDays, Edit3, Droplets } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import Avatar from '../components/common/Avatar'
 import { authService } from '../services/authService'
+import { useTranslation } from 'react-i18next'
 
 export default function Profile() {
   const { user, saveProfile } = useAuth()
+  const { t, i18n } = useTranslation()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ name: user?.name || '', location: user?.location || '', bio: user?.bio || '' })
   const [saving, setSaving] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('')
@@ -26,20 +28,20 @@ export default function Profile() {
   const save = async (event) => {
     event.preventDefault(); setError(''); setNotice('')
     const name = form.name.trim(), location = form.location.trim(), bio = form.bio.trim()
-    if (!name || name.length > 100) return setError('Name is required and must be 100 characters or fewer.')
-    if (location.length > 120) return setError('Location must be 120 characters or fewer.')
-    if (bio.length > 1000) return setError('About must be 1,000 characters or fewer.')
+    if (!name || name.length > 100) return setError(t('profile.nameLength'))
+    if (location.length > 120) return setError(t('profile.locationLength'))
+    if (bio.length > 1000) return setError(t('profile.aboutLength'))
     setSaving(true)
     try {
       await saveProfile({ name, location, bio })
-      setNotice('Profile changes saved.')
+      setNotice(t('profile.saved'))
       setEditing(false)
-    } catch (err) { setError(err?.status === 400 ? err.message : 'Could not save your profile. Please try again.') }
+    } catch (err) { setError(err?.status === 400 ? t('profile.invalid') : t('profile.saveError')) }
     finally { setSaving(false) }
   }
   const initials = user?.name?.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase()
-  return <div className="profile-page"><div className="profile-cover"></div><section className="profile-card"><div className="profile-top"><Avatar initials={initials} size="large"/><div className="profile-identity"><h1>{user?.name}</h1><span><MapPin size={14}/> {user?.location || 'Location not added'}</span></div><button className="button button-outline edit-profile" onClick={() => { editing ? cancel() : setEditing(true); setNotice('') }} disabled={saving}><Edit3 size={15}/>{editing ? 'Cancel' : 'Edit profile'}</button></div>
+  return <div className="profile-page"><div className="profile-cover"></div><section className="profile-card"><div className="profile-top"><Avatar initials={initials} size="large"/><div className="profile-identity"><h1>{user?.name}</h1><span><MapPin size={14}/> {user?.location || t('common.locationMissing')}</span></div><button className="button button-outline edit-profile" onClick={() => { editing ? cancel() : setEditing(true); setNotice('') }} disabled={saving}><Edit3 size={15}/>{editing ? t('common.cancel') : t('profile.edit')}</button></div>
     {error && <div className="alert-error" role="alert">{error}</div>}{notice && <div className="alert-success" role="status">{notice}</div>}
-    {editing ? <form className="profile-edit-form" onSubmit={save}><label>Name<input name="name" value={form.name} onChange={change} maxLength={100} required/></label><label>Location<input name="location" value={form.location} onChange={change} maxLength={120}/></label><label>About<textarea name="bio" rows="3" value={form.bio} onChange={change} maxLength={1000}/></label><button className="button button-primary" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button></form> : <p className="profile-bio">{user?.bio || 'Add a short introduction to your profile.'}</p>}
-    <div className="profile-meta"><span><CalendarDays size={15}/> Member since {user?.createdAt ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(user.createdAt)) : '—'}</span><span><Droplets size={15}/> WaterWise community member</span></div><div className="profile-metrics" aria-live="polite">{activityError ? <span role="alert">Activity metrics are unavailable.</span> : !activity ? <span>Loading activity…</span> : <><div><strong>{activity.postsCount ?? 0}</strong><span>Discussions</span></div><div><strong>{activity.votesCount ?? 0}</strong><span>Helpful votes</span></div><div><strong>{activity.bookmarksCount ?? 0}</strong><span>Saved resources</span></div></>}</div>{activity && <small className="profile-activity-comments">{activity.commentsCount ?? 0} comments and replies</small>}</section></div>
+    {editing ? <form className="profile-edit-form" onSubmit={save}><label>{t('profile.name')}<input name="name" value={form.name} onChange={change} maxLength={100} required/></label><label>{t('profile.location')}<input name="location" value={form.location} onChange={change} maxLength={120}/></label><label>{t('profile.about')}<textarea name="bio" rows="3" value={form.bio} onChange={change} maxLength={1000}/></label><button className="button button-primary" disabled={saving}>{saving ? t('common.saving') : t('common.save')}</button></form> : <p className="profile-bio">{user?.bio || t('profile.introPlaceholder')}</p>}
+    <div className="profile-meta"><span><CalendarDays size={15}/> {t('profile.memberSince')} {user?.createdAt ? new Intl.DateTimeFormat(i18n.resolvedLanguage || 'en', { month: 'long', year: 'numeric' }).format(new Date(user.createdAt)) : '—'}</span><span><Droplets size={15}/> {t('profile.member')}</span></div><div className="profile-metrics" aria-live="polite">{activityError ? <span role="alert">{t('profile.activityUnavailable')}</span> : !activity ? <span>{t('profile.activityLoading')}</span> : <><div><strong>{activity.postsCount ?? 0}</strong><span>{t('profile.discussions')}</span></div><div><strong>{activity.votesCount ?? 0}</strong><span>{t('profile.helpfulVotes')}</span></div><div><strong>{activity.bookmarksCount ?? 0}</strong><span>{t('profile.savedResources')}</span></div></>}</div>{activity && <small className="profile-activity-comments">{t('profile.commentsReplies', { count: activity.commentsCount ?? 0 })}</small>}</section></div>
 }

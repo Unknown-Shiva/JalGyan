@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
@@ -113,6 +114,7 @@ function WikiMarkdown({ content }) {
 }
 
 export default function ArticleDetails() {
+  const { t } = useTranslation();
   const { slug } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -135,7 +137,7 @@ export default function ArticleDetails() {
       .then((data) => {
         if (!active) return;
         if (!data || !data.article) {
-          setError('Article not found.');
+          setError(t('errors.articleMissing'));
           return;
         }
         setArticle(data.article);
@@ -144,7 +146,7 @@ export default function ArticleDetails() {
         setBookmarkCount(data.article.bookmarksCount || 0);
       })
       .catch((err) => {
-        if (active) setError(err.message || 'Article could not be loaded.');
+        if (active) setError(err.message || t('errors.articleUnavailable'));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -200,7 +202,7 @@ export default function ArticleDetails() {
     return (
       <div className="article-detail-loading">
         <Droplets size={32} className="spin-icon" />
-        <p>Loading conservation article...</p>
+        <p>{t('ui.k234')}</p>
       </div>
     );
   }
@@ -209,11 +211,10 @@ export default function ArticleDetails() {
     return (
       <div className="knowledge-empty-state">
         <BookOpen size={48} className="empty-icon" />
-        <h3>Article unavailable</h3>
-        <p>{error || 'The requested article could not be located.'}</p>
+        <h3>{t('ui.k073')}</h3>
+        <p>{error || t('errors.articleUnavailable')}</p>
         <Link to="/knowledge" className="button button-primary">
-          <ArrowLeft size={16} /> Back to Knowledge Library
-        </Link>
+          <ArrowLeft size={16} />{t('ui.k089')}</Link>
       </div>
     );
   }
@@ -229,16 +230,14 @@ export default function ArticleDetails() {
   return (
     <div className="article-detail-page">
       {/* Breadcrumb Navigation */}
-      <nav className="article-breadcrumbs" aria-label="Breadcrumb">
-        <Link to="/knowledge" className="breadcrumb-link">
-          Knowledge Library
-        </Link>
+      <nav className="article-breadcrumbs" aria-label={t('ui.a007')}>
+        <Link to="/knowledge" className="breadcrumb-link">{t('ui.k213')}</Link>
         <span className="breadcrumb-sep">&gt;</span>
         <Link
           to={`/knowledge?category=${article.category?.slug || ''}`}
           className="breadcrumb-link"
         >
-          {article.category?.name || 'Category'}
+          {article.category?.name || t('ui.extra.category')}
         </Link>
         <span className="breadcrumb-sep">&gt;</span>
         <span className="breadcrumb-current">{article.title}</span>
@@ -258,8 +257,7 @@ export default function ArticleDetails() {
               to={`/articles/edit/${article.id}`}
               className="button button-outline button-small edit-article-btn"
             >
-              <Edit3 size={14} /> Edit Article
-            </Link>
+              <Edit3 size={14} />{t('ui.k162')}</Link>
           )}
         </div>
 
@@ -270,7 +268,7 @@ export default function ArticleDetails() {
         <div className="article-meta-bar">
           <div className="article-author-meta">
             <span className="avatar avatar-small">
-              {(article.author?.name || 'Author')
+              {(article.author?.name || t('ui.extra.author'))
                 .split(' ')
                 .map((x) => x[0])
                 .join('')
@@ -299,28 +297,27 @@ export default function ArticleDetails() {
               <Clock size={13} /> {article.readTime || '5 min read'}
             </span>
             <span className="info-chip">
-              <Eye size={13} /> {article.viewsCount} views
-            </span>
+              <Eye size={13} /> {article.viewsCount}{t('ui.k497')}</span>
           </div>
 
           <div className="article-actions-bar">
             <button
               className={`button button-small ${isBookmarked ? 'button-primary' : 'button-outline'}`}
               onClick={toggleBookmark}
-              title={isBookmarked ? 'Remove bookmark' : 'Save article'}
+              title={isBookmarked ? t('common.removeBookmark') : t('ui.extra.saveArticle')}
             >
               <Bookmark size={15} fill={isBookmarked ? 'currentColor' : 'none'} />
-              <span>{isBookmarked ? 'Saved' : 'Save'}</span>
+              <span>{isBookmarked ? t('ui.extra.saved') : t('common.save')}</span>
               {bookmarkCount > 0 && <span className="action-counter">({bookmarkCount})</span>}
             </button>
 
             <button
               className="button button-outline button-small share-btn"
               onClick={handleCopyLink}
-              title="Copy article link"
+              title={t('ui.a018')}
             >
               {copied ? <Check size={15} color="#176b4a" /> : <Share2 size={15} />}
-              <span>{copied ? 'Copied Link!' : 'Share'}</span>
+              <span>{copied ? t('ui.extra.copiedLink') : t('forum.share')}</span>
             </button>
           </div>
         </div>
@@ -343,13 +340,12 @@ export default function ArticleDetails() {
           {videoResources.length > 0 && (
             <section className="article-video-section">
               <h3 className="section-subheading">
-                <Video size={18} /> Field Demonstrations & Video Tutorials
-              </h3>
+                <Video size={18} />{t('ui.k179')}</h3>
               <div className="video-cards-list">
                 {videoResources.map((vid) => (
                   <div key={vid.id} className="video-card">
                     <div className="video-info">
-                      <span className="video-tag">VIDEO GUIDE</span>
+                      <span className="video-tag">{t('ui.k443')}</span>
                       <h4>{vid.title}</h4>
                       <a
                         href={vid.url}
@@ -357,7 +353,7 @@ export default function ArticleDetails() {
                         rel="noopener noreferrer"
                         className="button button-primary button-small"
                       >
-                        <Video size={14} /> Watch Tutorial <ExternalLink size={12} />
+                        <Video size={14} />{' '}{t('ui.k454')}{' '}<ExternalLink size={12} />
                       </a>
                     </div>
                   </div>
@@ -370,8 +366,7 @@ export default function ArticleDetails() {
           {documentResources.length > 0 && (
             <section className="article-resources-section">
               <h3 className="section-subheading">
-                <FileText size={18} /> Technical Guidelines & Datasets
-              </h3>
+                <FileText size={18} />{t('ui.k415')}</h3>
               <div className="resources-list">
                 {documentResources.map((res) => (
                   <div key={res.id} className="resource-item">
@@ -390,7 +385,7 @@ export default function ArticleDetails() {
                       download
                     >
                       {res.type === 'PDF' ? <Download size={14} /> : <ExternalLink size={14} />}
-                      <span>{res.type === 'PDF' ? 'Download PDF' : 'Open Resource'}</span>
+                      <span>{res.type === 'PDF' ? t('article.download') : t('article.openResource')}</span>
                     </a>
                   </div>
                 ))}
@@ -402,7 +397,7 @@ export default function ArticleDetails() {
           {article.author && (
             <div className="article-author-card">
               <span className="avatar avatar-large">
-                {(article.author.name || 'Author')
+                {(article.author.name || t('ui.extra.author'))
                   .split(' ')
                   .map((x) => x[0])
                   .join('')
@@ -410,7 +405,7 @@ export default function ArticleDetails() {
                   .toUpperCase()}
               </span>
               <div className="author-card-content">
-                <span className="author-card-eyebrow">CONTRIBUTED BY</span>
+                <span className="author-card-eyebrow">{t('ui.k098')}</span>
                 <h3>{article.author.name}</h3>
                 {article.author.bio && <p>{article.author.bio}</p>}
                 {article.author.location && (
@@ -427,27 +422,27 @@ export default function ArticleDetails() {
         <aside className="article-sidebar">
           {/* Quick Table of Contents / Summary box */}
           <div className="sidebar-card toc-card">
-            <h4>Article Overview</h4>
+            <h4>{t('ui.k070')}</h4>
             <div className="toc-metrics">
               <div className="toc-metric">
                 <Clock size={16} />
                 <div>
                   <strong>{article.readTime || '5 min'}</strong>
-                  <span>Reading time</span>
+                  <span>{t('ui.k320')}</span>
                 </div>
               </div>
               <div className="toc-metric">
                 <Droplets size={16} />
                 <div>
                   <strong>{article.category?.name}</strong>
-                  <span>Domain</span>
+                  <span>{t('ui.k149')}</span>
                 </div>
               </div>
               <div className="toc-metric">
                 <FileText size={16} />
                 <div>
-                  <strong>{(article.resources || []).length} items</strong>
-                  <span>Attached resources</span>
+                  <strong>{(article.resources || []).length}{' '}{t('ui.k479')}</strong>
+                  <span>{t('ui.k079')}</span>
                 </div>
               </div>
             </div>
@@ -456,7 +451,7 @@ export default function ArticleDetails() {
           {/* Related Articles */}
           {relatedArticles.length > 0 && (
             <div className="sidebar-card related-card">
-              <h4>Related Conservation Guides</h4>
+              <h4>{t('ui.k332')}</h4>
               <div className="related-articles-list">
                 {relatedArticles.map((rel) => (
                   <Link
@@ -484,14 +479,9 @@ export default function ArticleDetails() {
           {/* Call to Contribute */}
           <div className="sidebar-card contribute-card">
             <Droplets size={26} className="contribute-icon" />
-            <h4>Have a technique to share?</h4>
-            <p>
-              Publish your water-efficient techniques, case studies, or irrigation schedules
-              to help communities overcome water stress.
-            </p>
-            <Link to="/articles/submit" className="button button-primary button-small button-wide">
-              Submit an Article
-            </Link>
+            <h4>{t('ui.k198')}</h4>
+            <p>{t('ui.k307')}</p>
+            <Link to="/articles/submit" className="button button-primary button-small button-wide">{t('ui.k393')}</Link>
           </div>
         </aside>
       </div>

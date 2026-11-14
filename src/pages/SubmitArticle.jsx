@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -18,6 +19,7 @@ import { categoryService } from '../services/categoryService';
 import { useAuth } from '../hooks/useAuth';
 
 export default function SubmitArticle() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -86,19 +88,19 @@ export default function SubmitArticle() {
     setSuccessMessage('');
 
     if (!title.trim() || title.trim().length < 8) {
-      setError('Title must be at least 8 characters long.');
+      setError(t('errors.articleTitle'));
       return;
     }
     if (!categoryId) {
-      setError('Please select a water conservation category.');
+      setError(t('errors.articleCategory'));
       return;
     }
     if (!summary.trim() || summary.trim().length < 20) {
-      setError('Summary must be at least 20 characters long.');
+      setError(t('errors.articleSummary'));
       return;
     }
     if (!content.trim() || content.trim().length < 50) {
-      setError('Article content must be at least 50 characters long.');
+      setError(t('errors.articleContent'));
       return;
     }
 
@@ -139,7 +141,7 @@ export default function SubmitArticle() {
         }
       }, 1500);
     } catch (err) {
-      setError(err.message || 'Failed to submit article. Please verify inputs.');
+      setError(err.message || t('errors.articleSubmit'));
     } finally {
       setSubmitting(false);
     }
@@ -149,17 +151,13 @@ export default function SubmitArticle() {
     <div className="submit-article-page">
       <div className="form-header-row">
         <Link to="/knowledge" className="back-link">
-          <ArrowLeft size={16} /> Back to Library
-        </Link>
-        <span className="eyebrow">MODULE A &bull; CONTRIBUTOR WORKSPACE</span>
+          <ArrowLeft size={16} />{t('ui.k090')}</Link>
+        <span className="eyebrow">{t('ui.k242')}</span>
       </div>
 
       <div className="form-title-area">
-        <h1>Contribute Water Conservation Article</h1>
-        <p>
-          Share scientific methodologies, agricultural irrigation techniques, or urban rainwater
-          case studies with the JalGyan community.
-        </p>
+        <h1>{t('ui.k127')}</h1>
+        <p>{t('ui.k380')}</p>
       </div>
 
       {error && (
@@ -177,26 +175,24 @@ export default function SubmitArticle() {
       <div className="submit-form-card">
         {/* Title */}
         <div className="form-group">
-          <label htmlFor="article-title">
-            Article Title <span className="req">*</span>
+          <label htmlFor="article-title">{t('ui.k072')}<span className="req">*</span>
           </label>
           <input
             id="article-title"
             type="text"
-            placeholder="e.g. Subsurface Drip Irrigation for Cotton in Black Cotton Soils"
+            placeholder={t('ui.a051')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="form-input"
             maxLength={150}
           />
-          <span className="field-hint">Between 8 and 150 characters ({title.length}/150)</span>
+          <span className="field-hint">{t('ui.k095')}{title.length}/150)</span>
         </div>
 
         {/* Category & Read Time Row */}
         <div className="form-row-2">
           <div className="form-group">
-            <label htmlFor="article-category">
-              Domain Category <span className="req">*</span>
+            <label htmlFor="article-category">{t('ui.k150')}<span className="req">*</span>
             </label>
             <select
               id="article-category"
@@ -214,42 +210,41 @@ export default function SubmitArticle() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="article-read-time">Estimated Read Time</label>
+            <label htmlFor="article-read-time">{t('ui.k171')}</label>
             <input
               id="article-read-time"
               type="text"
               value={readTime}
               onChange={(e) => setReadTime(e.target.value)}
               className="form-input"
-              placeholder="e.g. 7 min read"
+              placeholder={t('ui.a050')}
             />
           </div>
         </div>
 
         {/* Summary */}
         <div className="form-group">
-          <label htmlFor="article-summary">
-            Summary / Executive Abstract <span className="req">*</span>
+          <label htmlFor="article-summary">{t('ui.k399')}<span className="req">*</span>
           </label>
           <textarea
             id="article-summary"
             rows={3}
-            placeholder="A concise 2-3 sentence overview highlighting the water conservation technique and quantified benefits..."
+            placeholder={t('ui.a001')}
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             className="form-textarea"
             maxLength={500}
           />
-          <span className="field-hint">Between 20 and 500 characters ({summary.length}/500)</span>
+          <span className="field-hint">{t('ui.k094')}{summary.length}/500)</span>
         </div>
 
         {/* Cover Image URL */}
         <div className="form-group">
-          <label htmlFor="article-cover">Cover Image URL (Optional)</label>
+          <label htmlFor="article-cover">{t('ui.k130')}</label>
           <input
             id="article-cover"
             type="url"
-            placeholder="https://images.unsplash.com/photo-..."
+            placeholder={t('ui.a060')}
             value={coverImage}
             onChange={(e) => setCoverImage(e.target.value)}
             className="form-input"
@@ -258,7 +253,7 @@ export default function SubmitArticle() {
             <div className="cover-preview">
               <img
                 src={coverImage}
-                alt="Cover Preview"
+                alt={t('ui.a019')}
                 onError={(e) => {
                   e.target.style.display = 'none';
                 }}
@@ -270,8 +265,7 @@ export default function SubmitArticle() {
         {/* Markdown Editor Tabs */}
         <div className="form-group">
           <div className="editor-tab-header">
-            <label>
-              Full Article Body (Markdown supported) <span className="req">*</span>
+            <label>{t('ui.k188')}<span className="req">*</span>
             </label>
             <div className="tab-buttons">
               <button
@@ -279,15 +273,13 @@ export default function SubmitArticle() {
                 className={`tab-btn ${activeTab === 'write' ? 'active' : ''}`}
                 onClick={() => setActiveTab('write')}
               >
-                <Edit3 size={14} /> Write
-              </button>
+                <Edit3 size={14} />{t('ui.k463')}</button>
               <button
                 type="button"
                 className={`tab-btn ${activeTab === 'preview' ? 'active' : ''}`}
                 onClick={() => setActiveTab('preview')}
               >
-                <Eye size={14} /> Live Preview
-              </button>
+                <Eye size={14} />{t('ui.k232')}</button>
             </div>
           </div>
 
@@ -295,18 +287,18 @@ export default function SubmitArticle() {
             <>
               <textarea
                 rows={14}
-                placeholder="Write your article using Markdown headers (## Heading), bullet lists (- item), quotes (> citation), and math ($$ formula $$)..."
+                placeholder={t('ui.a047')}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="form-textarea code-font"
               />
               <div className="markdown-cheatsheet">
-                <span>Markdown hints:</span>
-                <code>## Section Title</code>
-                <code>### Subsection</code>
-                <code>**bold text**</code>
-                <code>- List item</code>
-                <code>&gt; Quote / Callout</code>
+                <span>{t('ui.k247')}</span>
+                <code>{t('ui.k001')}</code>
+                <code>{t('ui.k002')}</code>
+                <code>{t('ui.k009')}</code>
+                <code>{t('ui.k010')}</code>
+                <code>{t('ui.k020')}</code>
               </div>
             </>
           ) : (
@@ -318,7 +310,7 @@ export default function SubmitArticle() {
                   ))}
                 </div>
               ) : (
-                <div className="preview-empty">Write some content to see live preview...</div>
+                <div className="preview-empty">{t('ui.k465')}</div>
               )}
             </div>
           )}
@@ -328,24 +320,19 @@ export default function SubmitArticle() {
         <div className="form-group resources-builder-section">
           <div className="resources-builder-header">
             <div>
-              <label>Attached Resources & Educational Media</label>
-              <p className="field-hint">
-                Attach technical manuals, videos, spreadsheets, or government guidelines to accompany your article.
-              </p>
+              <label>{t('ui.k078')}</label>
+              <p className="field-hint">{t('ui.k076')}</p>
             </div>
             <button
               type="button"
               className="button button-outline button-small"
               onClick={handleAddResource}
             >
-              <Plus size={14} /> Add Resource
-            </button>
+              <Plus size={14} />{t('ui.k039')}</button>
           </div>
 
           {resources.length === 0 ? (
-            <div className="no-resources-hint">
-              No resources attached yet. Click "+ Add Resource" to include PDFs, research links, or video tutorials.
-            </div>
+            <div className="no-resources-hint">{t('ui.k276')}</div>
           ) : (
             <div className="resources-form-list">
               {resources.map((res, index) => (
@@ -353,7 +340,7 @@ export default function SubmitArticle() {
                   <div className="res-input-title">
                     <input
                       type="text"
-                      placeholder="Resource Title (e.g. Drip Layout Schematic PDF)"
+                      placeholder={t('ui.a038')}
                       value={res.title}
                       onChange={(e) => handleUpdateResource(index, 'title', e.target.value)}
                       className="form-input"
@@ -362,7 +349,7 @@ export default function SubmitArticle() {
                   <div className="res-input-url">
                     <input
                       type="url"
-                      placeholder="https://example.com/manual.pdf or YouTube link"
+                      placeholder={t('ui.a059')}
                       value={res.url}
                       onChange={(e) => handleUpdateResource(index, 'url', e.target.value)}
                       className="form-input"
@@ -374,17 +361,17 @@ export default function SubmitArticle() {
                       onChange={(e) => handleUpdateResource(index, 'type', e.target.value)}
                       className="form-select"
                     >
-                      <option value="PDF">PDF Document</option>
-                      <option value="VIDEO">Video Tutorial</option>
-                      <option value="DATASET">Dataset / Sheet</option>
-                      <option value="LINK">External Link</option>
+                      <option value="PDF">{t('ui.k288')}</option>
+                      <option value="VIDEO">{t('ui.k448')}</option>
+                      <option value="DATASET">{t('ui.k138')}</option>
+                      <option value="LINK">{t('ui.k174')}</option>
                     </select>
                   </div>
                   <button
                     type="button"
                     className="icon-button delete-res-btn"
                     onClick={() => handleRemoveResource(index)}
-                    title="Remove resource"
+                    title={t('ui.a036')}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -401,16 +388,14 @@ export default function SubmitArticle() {
             className="button button-outline"
             disabled={submitting}
             onClick={() => handleSubmit('DRAFT')}
-          >
-            Save as Draft
-          </button>
+          >{t('ui.k371')}</button>
           <button
             type="button"
             className="button button-primary"
             disabled={submitting}
             onClick={() => handleSubmit('PENDING_REVIEW')}
           >
-            {submitting ? 'Submitting...' : 'Submit for Review'}
+            {submitting ? t('ui.extra.submitting') : t('ui.k394')}
           </button>
         </div>
       </div>

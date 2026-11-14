@@ -1,225 +1,338 @@
 # JalGyan (WaterWise India)
-> **Digital Knowledge Sharing Platform for Water-Efficient Techniques and Minimizing Water Scarcity**  
-> *Domain: Clean & Green Technology (Software) • Ministry of Jal Shakti • Bureau of Water Use Efficiency*
-> *College Major Project — Integrated Implementation*
 
----
+JalGyan is a full-stack water-conservation knowledge and community platform. It brings together practical articles and resources, community discussions, water-use calculators, and administrative tools for managing platform content and accounts.
 
-## 🌊 Overview & Problem Statement
+## Contents
 
-The absence of a centralized, accessible digital knowledge repository significantly hampers the adoption of water-saving agricultural and domestic practices across India. Despite proven interventions—such as micro-drip irrigation, rooftop rainwater harvesting, and municipal greywater reuse—the lack of accessible localized data and calculation tools leads to severe over-extraction of groundwater.
+- [Features](#features)
+- [Technology](#technology)
+- [Repository layout](#repository-layout)
+- [Requirements](#requirements)
+- [Local setup](#local-setup)
+- [Environment variables](#environment-variables)
+- [Run the application](#run-the-application)
+- [Routes and API](#routes-and-api)
+- [Database and seed data](#database-and-seed-data)
+- [Tests and checks](#tests-and-checks)
+- [Internationalization](#internationalization)
+- [Security notes](#security-notes)
+- [Project documentation](#project-documentation)
 
-**JalGyan** bridges this critical gap through a unified, full-stack three-module web application:
-- **Module A (Person 1) — Knowledge Management**: Peer-reviewed technical articles on conservation, dynamic category indexing, curated video manuals, author submission consoles, and full-text search.
-- **Module B (Person 2) — Community & Discussion**: Citizen problem-sharing forum, threaded peer discussions, upvote/downvote scoring, bookmarking, and community reporting.
-- **Module C (Person 3) — Platform Administration & Water Conservation Calculator**: Role-based administrative dashboard, article editorial reviews, user lifecycle governance, report moderation, immutable audit logging, and a suite of 4 scientific water conservation calculators.
+## Features
 
----
+### Knowledge and resources
 
-## 🏗️ Architecture & Technology Stack
+- Browse, search, sort, and filter published water-conservation articles.
+- Read article detail pages and browse related articles and learning resources.
+- Submit, edit, and manage authored articles, including draft and review flows.
+- Browse videos, manuals, datasets, and other resources associated with water topics.
+- Bookmark articles for later.
 
-| Layer | Technologies & Tools |
+### Community
+
+- Browse public community discussions and open discussion details.
+- Authenticated users can create, edit, and soft-delete their own posts.
+- Add comments and nested replies, with author-only editing and soft deletion.
+- Vote on discussions. Each user can upvote or downvote a post; submitting the same vote again removes it.
+- View discussion vote totals and the current user's vote state.
+- Edit profile details and view activity counts for posts, comments, votes, and bookmarks.
+- Submit reports about supported content targets for administrator review.
+
+### Water-use calculators
+
+The calculator page supports four calculation types:
+
+- Agriculture water requirements
+- Drip-irrigation savings
+- Rooftop rainwater harvesting
+- Household water consumption and conservation measures
+
+Calculation requests can be made by guests or signed-in users. Signed-in users can view their own saved calculation history.
+
+### Administration
+
+Administrator-only routes provide:
+
+- Dashboard metrics and water-calculation summaries.
+- Article review and approval/rejection workflows.
+- User search, role changes, suspension, and reactivation.
+- Report review, resolution, and dismissal.
+- Administrative activity and audit-log views.
+
+### Multilingual interface
+
+The frontend includes English and eight Indian languages: Hindi, Marathi, Bengali, Telugu, Tamil, Gujarati, Kannada, and Urdu. The navbar selector changes the interface language immediately and saves the selection in browser `localStorage`. Urdu switches the document to right-to-left direction. User-generated posts, comments, and database article content remain in their authored language.
+
+## Technology
+
+| Area | Technologies |
 |---|---|
-| **Frontend** | React 18, React Router v6, Vite 6, Lucide React icons, Native Fetch (`apiRequest` wrapper) |
-| **Styling** | Custom Responsive Design System CSS (`src/styles.css` & `src/admin.css`) |
-| **Backend** | Node.js (ESM), Express.js, RESTful API architecture |
-| **ORM & Database**| Prisma ORM 7, PostgreSQL, CUID primary keys, Decimal metrics |
-| **Security & Auth**| JWT Bearer Authentication, BCrypt password hashing ($2b$10$), RBAC middleware (`requireAuth`, `requireAdmin`, `optionalAuth`) |
-| **Testing** | Automated Node.js integration test suites with zero external test runners |
+| Frontend | React 18, React Router 6, Vite 6, i18next, react-i18next |
+| UI | Project CSS in `src/styles.css` and `src/admin.css`; Lucide React icons |
+| Backend | Node.js (ES modules), Express 4 |
+| Database | PostgreSQL, Prisma 7, `pg` driver adapter |
+| Authentication | JWT bearer tokens, bcryptjs password hashing, role middleware |
+| Server tests | Standalone Node.js scripts under `server/test_*.js` |
 
----
+## Repository layout
 
-## 💧 Module C: Water Conservation Calculators (Person 3)
+```text
+.
+├── src/
+│   ├── components/       # Shared, forum, and admin UI components
+│   ├── context/          # Authentication/session context
+│   ├── hooks/            # Shared React hooks
+│   ├── i18n/              # i18next config and locale JSON files
+│   ├── pages/             # Knowledge, community, calculator, and admin pages
+│   └── services/          # Frontend API clients
+├── server/
+│   ├── prisma/            # Shared Prisma schema, migrations, and seed script
+│   ├── src/
+│   │   ├── config/        # Environment and database setup
+│   │   ├── controllers/  # API request handlers
+│   │   ├── middleware/   # Authentication, authorization, and error handling
+│   │   └── routes/       # Express route definitions
+│   └── test_*.js          # Standalone backend test scripts
+└── docs/                  # Module and implementation documentation
+```
 
-The platform provides 4 scientific calculators accessible to guests and registered users at `/calculator`:
+The database schema is shared across the knowledge, community, and administration modules. See `server/prisma/schema.prisma` for the models and relations.
 
-### 1. Agriculture Water Requirement Calculator
-- **Inputs**: Land area (acres or hectares), Crop type (Paddy, Wheat, Sugarcane, Cotton, Maize, Pulses, Vegetables, Millets, Custom), Irrigation method (Surface/Flood, Sprinkler, Micro-Drip), Seasons per year.
-- **Formulas**:
-  $$\text{Area}_{\text{m}^2} = \begin{cases} \text{Area} \times 4046.86 & \text{if acres} \\ \text{Area} \times 10000 & \text{if hectares} \end{cases}$$
-  $$\text{Net Water (L)} = \text{Area}_{\text{m}^2} \times \text{Crop Depth (mm)}$$
-  $$\text{Gross Seasonal Water (L)} = \frac{\text{Net Water}}{\text{Method Efficiency}}$$
-  $$\text{Daily Requirement (L/day)} = \frac{\text{Gross Seasonal Water}}{\text{Crop Duration (days)}}$$
-- **Assumptions**: Flood efficiency (45%), Sprinkler (75%), Micro-Drip (90%). Crop water depths derived from regional ICAR / Ministry of Jal Shakti benchmarks.
+## Requirements
 
-### 2. Drip Irrigation Savings Calculator
-- **Inputs**: Land area, Current irrigation method (Surface Flood or Sprinkler), Target Drip efficiency (default 90%), Cropping seasons per year.
-- **Formulas**:
-  $$\text{Drip Consumption (L)} = \text{Current Usage} \times \left(\frac{\text{Current Efficiency}}{\text{Drip Efficiency}}\right)$$
-  $$\text{Water Saved (L)} = \text{Current Consumption} - \text{Drip Consumption}$$
-  $$\text{Savings Percentage} = \left(\frac{\text{Water Saved}}{\text{Current Consumption}}\right) \times 100\%$$
-- **Assumptions**: Shifting from flood to micro-drip yields approximately 50% net water conservation per cropping season.
+- Node.js **20.19+, 22.12+, or 24+** (required by the installed Prisma 7 version).
+- npm.
+- PostgreSQL for running the backend and database-backed features.
 
-### 3. Rooftop Rainwater Harvesting Calculator
-- **Inputs**: Rooftop catchment area ($m^2$), Average annual rainfall ($mm$), Runoff collection efficiency ($10\% - 95\%$, default $80\%$).
-- **Formula**:
-  $$\text{Annual Harvested Water (Litres)} = \text{Roof Area } (m^2) \times \text{Annual Rainfall } (mm) \times \text{Collection Efficiency}$$
-  $$\text{Monthly Average (L/month)} = \frac{\text{Annual Harvested Water}}{12}$$
-- **Storage Sizing**: Recommended storage tank capacity is estimated at 20% of annual harvest or 25–30 days of household buffer.
-- **Assumptions**: 1 mm of rainfall over $1\text{ m}^2$ equals exactly 1 Litre of water. Standard $80\%$ efficiency accounts for first-flush rejection and gutter adhesion.
+## Local setup
 
-### 4. Household Water Consumption & Efficiency Calculator
-- **Inputs**: Number of household members, Daily bathing (L/person), Toilet flushing (L/person), Laundry (L/day), Kitchen (L/day), Other domestic uses (L/day), Selection of conservation measures.
-- **Formulas**:
-  $$\text{Daily Baseline (L)} = N \times (\text{Bathing} + \text{Toilet}) + \text{Laundry} + \text{Kitchen} + \text{Other}$$
-  $$\text{Annual Baseline (L)} = \text{Daily Baseline} \times 365$$
-  $$\text{Daily Savings (L)} = \sum \text{Savings from active conservation measures}$$
-- **Measures & Savings**:
-  - Low-flow showerheads: 35% reduction in bathing water.
-  - Dual-flush toilet cisterns: 40% reduction in flush volume.
-  - Aerated sink taps: 25% reduction in kitchen/washbasin tap volume.
-  - Greywater recycling: 50% reuse of rinse water for flushing and gardens.
-- **Benchmark**: Compared against the CPHEEO urban domestic standard of 135 Litres Per Capita per Day (LPCD).
+1. Install frontend and backend dependencies from the repository root:
 
----
+   ```bash
+   npm install
+   cd server
+   npm install
+   cd ..
+   ```
 
-## 🛡️ Administrative Governance & Moderation (Person 3)
+2. Create local environment files from the examples:
 
-1. **Dashboard KPIs (`/admin`)**: Real-time platform metrics, user counts, article counts, community totals, water conservation totals (annual water saved, annual rainwater harvested, calculations breakdown), and recent audit log stream.
-2. **Article Moderation (`/admin/articles`)**: Editorial approval/rejection queue with review notes, status transitions (`PENDING_REVIEW` $\to$ `PUBLISHED` / `REJECTED`), and review history tracking.
-3. **User Management (`/admin/users`)**: Search, role filtering, suspension/reactivation, role elevation/demotion, and atomic last-active-admin protection.
-4. **Report Moderation (`/admin/reports`)**: Incident resolution, target snapshot preservation, dismissal/resolution actions, and content takedown.
-5. **Activity & Audit Logs (`/admin/activity`)**: Immutable chronological audit trail recording all administrative mutations with sensitive JSON redaction and date range filtering.
+   ```bash
+   cp .env.example .env
+   cp server/.env.example server/.env
+   ```
 
----
+3. Edit `server/.env` and set a PostgreSQL connection string, a strong JWT secret, and local administrator credentials. Do not use production or shared database credentials for local development.
 
-## 🔌 API Endpoints Summary
+4. Create a local development database, then generate the Prisma client and apply the checked-in migrations:
 
-### Authentication (`/api/auth`)
-- `POST /api/auth/register` — User registration
-- `POST /api/auth/login` — Sign in and issue JWT
-- `GET /api/auth/me` — Verify active token and profile
+   ```bash
+   cd server
+   npx prisma generate
+   npx prisma migrate deploy
+   cd ..
+   ```
 
-### Water Conservation Calculator (`/api/calculator`)
-- `POST /api/calculator/calculate` — Execute and persist water calculation (guest & authenticated)
-- `GET /api/calculator/history` — Paginated calculation history (authenticated user)
-- `GET /api/calculator/history/:id` — Detail view of saved calculation record
+5. Optionally seed the local development database:
 
-### Platform Administration (`/api/admin`)
-- `GET /api/admin/dashboard/stats` — Aggregated platform statistics
-- `GET /api/admin/articles/pending` — Pending article moderation queue
-- `GET /api/admin/articles/:id` — Article moderation details & history
-- `PATCH /api/admin/articles/:id/approve` — Approve pending article
-- `PATCH /api/admin/articles/:id/reject` — Reject article with feedback
-- `GET /api/admin/users` — Paginated user management list
-- `GET /api/admin/users/:id` — User profile & engagement counts
-- `PATCH /api/admin/users/:id/suspend` — Suspend user account
-- `PATCH /api/admin/users/:id/activate` — Reactivate user account
-- `PATCH /api/admin/users/:id/role` — Update user role (ADMIN / USER)
-- `GET /api/admin/reports` — Paginated report queue
-- `GET /api/admin/reports/:id` — Report detail with target snapshot
-- `PATCH /api/admin/reports/:id/resolve` — Resolve report
-- `PATCH /api/admin/reports/:id/dismiss` — Dismiss report
-- `GET /api/admin/activity` — Paginated immutable audit trail
-- `GET /api/admin/activity/summary` — Aggregate audit metrics & active admin count
-- `GET /api/admin/activity/:id` — Full audit log record
+   ```bash
+   cd server
+   node prisma/seed.js
+   cd ..
+   ```
 
-### Knowledge Management (`/api/articles`, `/api/categories`, `/api/resources`)
-- `GET /api/categories` — Category list with article counts
-- `GET /api/articles` — Published articles with filters
-- `POST /api/articles` — Author submit article
-- `GET /api/resources` — Video and manual resource catalog
+The seed script upserts sample conservation categories, articles, resources, and the configured administrator. Run it only against a local development database whose contents you are comfortable updating.
 
-### Community Forum (`/api/posts`, `/api/comments`, `/api/bookmarks`)
-- `GET /api/posts` — Forum discussions
-- `POST /api/posts` — Create forum post
-- `POST /api/comments` — Add comment to discussion
-- `GET /api/bookmarks` — User saved articles
+## Environment variables
 
----
+### Frontend (`.env` in the repository root)
 
-## 🚀 Setup & Execution Guide
+| Variable | Purpose | Default |
+|---|---|---|
+| `VITE_API_BASE_URL` | Base URL used by the frontend API client | `http://localhost:5001/api` |
 
-### Prerequisites
-- Node.js (v18.0.0 or higher)
-- PostgreSQL (v14 or higher)
+### Backend (`server/.env`)
 
-### 1. Clone & Configure Environment Variables
+| Variable | Purpose | Default / example |
+|---|---|---|
+| `PORT` | Express server port | `5001` |
+| `NODE_ENV` | Runtime mode | `development` |
+| `CLIENT_URL` | Allowed browser origin for CORS | `http://localhost:5173` |
+| `DATABASE_URL` | PostgreSQL connection string | Set this for your local database |
+| `JWT_SECRET` | Secret used to sign and verify JWTs | Required explicitly in production |
+| `JWT_EXPIRES_IN` | JWT lifetime | `7d` |
+| `ADMIN_EMAIL` | Administrator email used by the seed script | `admin@jalgyan.org` |
+| `ADMIN_PASSWORD` | Administrator password used by the seed script | Set a strong local value |
+
+The backend loads `server/.env`. The root `.env` and `server/.env` files are ignored by Git; keep secrets out of source control.
+
+## Run the application
+
+Start the backend and frontend in separate terminals from the repository root:
+
 ```bash
-# Frontend environment
-cp .env.example .env
-
-# Backend environment
+# Terminal 1: Express API
 cd server
-cp .env.example .env
+npm run dev
 ```
 
-Ensure `server/.env` contains your PostgreSQL connection string:
-```ini
-DATABASE_URL="postgresql://<user>:<password>@localhost:5432/jalgyan_dev?schema=public"
-JWT_SECRET="your_jwt_secret_key"
-PORT=5001
-ADMIN_EMAIL="admin@jalgyan.org"
-ADMIN_PASSWORD="YourSecureAdminPassword123!"
-```
-
-### 2. Install Dependencies
 ```bash
-# Install frontend packages (root)
-npm install
+# Terminal 2: Vite frontend
+npm run dev
+```
 
-# Install backend packages
+Open [http://localhost:5173](http://localhost:5173). The API health endpoint is [http://localhost:5001/api/health](http://localhost:5001/api/health).
+
+Available root scripts:
+
+```bash
+npm run dev       # Start Vite development server
+npm run build     # Create the production frontend build in dist/
+npm run preview   # Preview the production build locally
+```
+
+The backend package provides `npm start` and `npm run dev`. It does not define an `npm run seed` script; use the `node prisma/seed.js` command above from `server/`.
+
+## Routes and API
+
+The frontend routes are declared in `src/App.jsx`. Unknown frontend routes redirect to `/knowledge`.
+
+| Frontend path | Access | Purpose |
+|---|---|---|
+| `/knowledge`, `/articles` | Public | Knowledge library |
+| `/articles/:slug` | Public | Article detail |
+| `/resources` | Public | Educational resource library |
+| `/articles/submit`, `/articles/edit/:id`, `/my-articles` | Signed in | Article author tools |
+| `/forum`, `/forum/:id` | Public browsing; signed-in actions | Community discussion feed and details |
+| `/profile`, `/bookmarks` | Signed in | Profile, activity, and saved articles |
+| `/calculator` | Public | Water-use calculators and signed-in history |
+| `/login`, `/register` | Public | Authentication |
+| `/admin/*` | Administrator | Administration tools |
+
+The API is mounted under `/api`. Authenticated requests use `Authorization: Bearer <token>`. Responses generally use `{ "success": true, "data": ..., "message?": ... }`; errors use an appropriate HTTP status and an error message.
+
+### Health and authentication
+
+| Method | Endpoint | Access |
+|---|---|---|
+| `GET` | `/api/health` | Public |
+| `POST` | `/api/auth/register` | Public |
+| `POST` | `/api/auth/login` | Public |
+| `GET` | `/api/auth/me` | Signed in |
+| `PATCH` | `/api/auth/me` | Signed in; update own profile |
+| `GET` | `/api/auth/me/activity` | Signed in; own activity metrics |
+
+### Knowledge and resources
+
+| Method | Endpoint | Access |
+|---|---|---|
+| `GET` | `/api/categories`, `/api/categories/:slug` | Public |
+| `POST` | `/api/categories` | Administrator |
+| `GET` | `/api/articles` | Public; optional authentication |
+| `GET` | `/api/articles/my` | Signed in |
+| `GET` | `/api/articles/:slugOrId` | Public; optional authentication |
+| `POST` | `/api/articles` | Signed in |
+| `PUT`, `PATCH` | `/api/articles/:id` | Signed in; ownership is checked |
+| `PATCH` | `/api/articles/:id/submit` | Signed in; ownership is checked |
+| `DELETE` | `/api/articles/:id` | Signed in; ownership is checked |
+| `POST` | `/api/articles/:id/resources` | Signed in; ownership is checked |
+| `DELETE` | `/api/articles/:id/resources/:resourceId` | Signed in; ownership is checked |
+| `GET` | `/api/resources` | Public |
+
+### Community and bookmarks
+
+| Method | Endpoint | Access |
+|---|---|---|
+| `GET` | `/api/posts` | Public; optional authentication for vote state |
+| `GET` | `/api/posts/:id` | Public; optional authentication for vote state |
+| `POST` | `/api/posts` | Signed in |
+| `PATCH`, `DELETE` | `/api/posts/:id` | Signed in; author only |
+| `POST` | `/api/posts/:id/comments` | Signed in |
+| `POST` | `/api/posts/:id/vote` | Signed in |
+| `PATCH`, `DELETE` | `/api/comments/:id` | Signed in; comment author only |
+| `GET` | `/api/bookmarks` | Signed in; own bookmarks |
+| `POST`, `DELETE` | `/api/bookmarks/:articleId` | Signed in; own bookmarks |
+| `POST` | `/api/reports` | Signed in; submit a user report |
+
+### Calculator and administration
+
+| Method | Endpoint | Access |
+|---|---|---|
+| `POST` | `/api/calculator/calculate` | Public; optional authentication associates calculation with user |
+| `GET` | `/api/calculator/history` | Signed in; own history |
+| `GET` | `/api/calculator/history/:id` | Signed in; own record |
+| `GET` | `/api/admin/verify` | Administrator |
+| `GET` | `/api/admin/dashboard/stats` | Administrator |
+| `GET` | `/api/admin/articles/pending` | Administrator |
+| `GET` | `/api/admin/articles/:id` | Administrator |
+| `GET` | `/api/admin/articles/:id/reviews` | Administrator |
+| `PATCH` | `/api/admin/articles/:id/approve`, `/api/admin/articles/:id/reject` | Administrator |
+| `GET` | `/api/admin/users`, `/api/admin/users/:id` | Administrator |
+| `PATCH` | `/api/admin/users/:id/suspend`, `/api/admin/users/:id/activate`, `/api/admin/users/:id/role` | Administrator |
+| `GET` | `/api/admin/reports`, `/api/admin/reports/:id` | Administrator |
+| `PATCH` | `/api/admin/reports/:id/resolve`, `/api/admin/reports/:id/dismiss` | Administrator |
+| `GET` | `/api/admin/activity`, `/api/admin/activity/summary`, `/api/admin/activity/:id` | Administrator |
+
+Authorization is enforced by backend middleware and ownership checks. Client-provided user IDs are not the authority for user-owned operations.
+
+## Database and seed data
+
+The PostgreSQL schema is in `server/prisma/schema.prisma`. It defines shared identity and role models, articles and categories, forum posts and nested comments, votes, bookmarks, reports, review/audit records, and water calculations. The migration history is under `server/prisma/migrations/`.
+
+The application uses Prisma with the PostgreSQL driver adapter. To inspect schema changes locally, use Prisma commands from `server/`; do not edit or apply schema changes to a shared database without coordinating with the project owners.
+
+## Tests and checks
+
+There is no root `npm test` script or consolidated test runner. Backend checks are standalone Node scripts in `server/`, including coverage for authentication, profile, forum, comments, voting, bookmarks, reports, article workflows, calculator, and administration.
+
+Examples:
+
+```bash
 cd server
-npm install
-cd ..
+node test_registration.js
+node test_profile_update.js
+node test_profile_activity.js
+node test_forum_feed.js
+node test_forum_post_detail.js
+node test_forum_post_create.js
+node test_forum_post_update_delete.js
+node test_forum_comments.js
+node test_forum_votes.js
+node test_forum_vote_state.js
+node test_bookmarks_list.js
+node test_bookmark_mutations.js
+node test_report_submission.js
 ```
 
-### 3. Initialize Database with Prisma
-```bash
-cd server
-npx prisma generate
-npx prisma migrate deploy
-node prisma/seed.js
-cd ..
-```
+Additional scripts cover admin workflows, article CRUD/moderation, water calculations, auth middleware, and production error/JWT handling. Test setup varies: some scripts stub or replace Prisma operations, while others require a configured database, administrator credentials, or a local API port. Inspect a script before running it. Do not point tests at production or a shared database. This repository currently has no dedicated `TEST_DATABASE_URL`-guarded PostgreSQL integration-test command.
 
-### 4. Run Automated Test Suites
-Execute all automated test suites to verify integrity across all modules:
-```bash
-# Module C & Overall Platform Test Suites
-node server/test_water_calculator.js      # 18 tests (Calculator)
-node server/test_frontend_auth.js         # 15 tests (Auth & Guards)
-node server/test_admin_dashboard.js        # 10 tests (Admin Dashboard)
-node server/test_article_moderation.js     # 16 tests (Article Moderation)
-node server/test_user_management.js        # 16 tests (User Governance)
-node server/test_report_moderation.js      # 16 tests (Report Moderation)
-node server/test_admin_activity.js         # 19 tests (Audit Logs & KPI)
-```
-*Expected: 110 tests passing across all suites.*
+Build the frontend with:
 
-### 5. Build Frontend
 ```bash
 npm run build
 ```
 
-### 6. Start the Servers
-```bash
-# Terminal 1 — Start Backend API (Port 5001)
-cd server
-npm run dev
+## Internationalization
 
-# Terminal 2 — Start Frontend Application (Port 5173)
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your web browser.
+- i18next configuration: `src/i18n/index.js`.
+- Locale dictionaries: `src/i18n/locales/{en,hi,mr,bn,te,ta,gu,kn,ur}.json`.
+- English is the default and fallback language.
+- The navbar selector uses native-script language names.
+- The selected code is stored under `jalgyan.language` in `localStorage`.
+- Urdu sets `<html dir="rtl">`; other supported languages set `<html dir="ltr">`.
+- Dynamic database content and user-generated content are not translated automatically.
 
----
+When adding a user-facing interface string, add the same key with a non-empty value to every locale file. Keep backend/API enum values and user-generated text unchanged unless the UI explicitly renders a translated display label.
 
-## 🎬 Suggested 5-Minute College Demonstration Sequence
+## Security notes
 
-| Step | Time | Screen & Route | Action / Discussion Point |
-|---|---|---|---|
-| **1. Overview** | 0:00 – 0:30 | `/knowledge` | Present the JalGyan mission (Ministry of Jal Shakti), clean green/white UI, and the 3-module system. |
-| **2. Knowledge Management** | 0:30 – 1:15 | `/knowledge`, `/articles/:slug`, `/resources` | Filter articles by category (Drip, Rainwater), open an article, show view counter, read time, and attached video resources. |
-| **3. Community & Forum** | 1:15 – 2:00 | `/forum`, `/forum/:id` | Browse citizen discussions, show voting, comments, and community report filing. |
-| **4. Water Conservation Calculator** | 2:00 – 3:15 | `/calculator` | Demonstrate all 4 calculators: <br>• **Agriculture**: 2.5 acres of Wheat $\to$ calculate gross requirement and drip savings.<br>• **Drip Irrigation**: Compare flood vs drip $\to$ highlight 50% savings.<br>• **Rainwater Harvesting**: Select Delhi (790mm), 120m² roof $\to$ highlight annual yield & tank sizing.<br>• **Household**: 4 members with aerators & dual flush $\to$ show annual domestic water saved.<br>• **History Tab**: Show saved calculations recorded live in the database. |
-| **5. Admin Dashboard** | 3:15 – 3:45 | `/admin` | Log in as Administrator. Show real-time KPI cards, and point out how the water conservation numbers aggregate calculations from the calculator. |
-| **6. Article Moderation** | 3:45 – 4:15 | `/admin/articles` | Inspect a pending article, review submission details, and approve or reject with reviewer feedback. |
-| **7. User Management** | 4:15 – 4:35 | `/admin/users` | Demonstrate search, role filter, user suspension, and show that demoting the last active administrator is blocked. |
-| **8. Report Moderation** | 4:35 – 4:50 | `/admin/reports` | Inspect a user report, review the preserved target snapshot, and resolve it. |
-| **9. Audit Trail & Wrap-up** | 4:50 – 5:00 | `/admin/activity` | Open the audit logs to show that every action performed during the demo was automatically logged into the immutable audit trail. |
+- Never commit `.env` files, database credentials, JWT secrets, or administrator passwords.
+- Configure a strong `JWT_SECRET` in production; the server refuses to start in production without one.
+- Use a dedicated local development database for migrations, seed data, and tests.
+- API handlers should derive user identity from the authenticated request and return sanitized user projections.
+- Admin routes require authenticated administrator authorization.
 
----
+## Project documentation
 
-## ⚖️ License & Attribution
-Developed for the JalGyan College Major Project submission. Shared between Module A, Module B, and Module C project team members.
+- [Person 1: Knowledge Management](docs/MODULE_A_KNOWLEDGE_MANAGEMENT.md)
+- [Person 2: Implementation audit and commit map](docs/person-2-implementation-audit.md)

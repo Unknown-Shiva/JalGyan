@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
@@ -19,6 +20,7 @@ import { articleService } from '../services/articleService';
 import { useAuth } from '../hooks/useAuth';
 
 export default function MyArticles() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -48,7 +50,7 @@ export default function MyArticles() {
       })
       .catch((err) => {
         console.error(err);
-        setError('Could not load your articles. Please try again.');
+        setError(t('errors.articlesMine'));
       })
       .finally(() => setLoading(false));
   };
@@ -73,14 +75,14 @@ export default function MyArticles() {
       await articleService.submitForReview(articleId);
       loadData();
     } catch (err) {
-      alert(err.message || 'Failed to submit article for review.');
+      alert(err.message || t('errors.articleReview'));
     } finally {
       setActionInProgress(null);
     }
   };
 
   const handleDelete = async (articleId, title) => {
-    if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
+    if (!window.confirm(t('errors.confirmDelete', { title }))) return;
 
     setActionInProgress(articleId);
     try {
@@ -91,7 +93,7 @@ export default function MyArticles() {
         total: Math.max(0, prev.total - 1),
       }));
     } catch (err) {
-      alert(err.message || 'Failed to delete article.');
+      alert(err.message || t('errors.articleDelete'));
     } finally {
       setActionInProgress(null);
     }
@@ -108,15 +110,12 @@ export default function MyArticles() {
       {/* Header */}
       <div className="my-articles-header">
         <div>
-          <span className="eyebrow">MODULE A &bull; AUTHOR DASHBOARD</span>
-          <h1>My Water Conservation Articles</h1>
-          <p>
-            Track your submissions, review status from hydrologists, and manage technical guides.
-          </p>
+          <span className="eyebrow">{t('ui.k241')}</span>
+          <h1>{t('ui.k258')}</h1>
+          <p>{t('ui.k426')}</p>
         </div>
         <Link to="/articles/submit" className="button button-primary">
-          <PlusCircle size={16} /> New Article
-        </Link>
+          <PlusCircle size={16} />{t('ui.k262')}</Link>
       </div>
 
       {/* Metrics Bar */}
@@ -124,32 +123,32 @@ export default function MyArticles() {
         <div className="author-stat-card">
           <FileText size={20} className="stat-card-icon" />
           <div className="stat-number">{stats.total}</div>
-          <div className="stat-desc">Total Articles</div>
+          <div className="stat-desc">{t('ui.k424')}</div>
         </div>
         <div className="author-stat-card stat-published">
           <CheckCircle2 size={20} className="stat-card-icon" />
           <div className="stat-number">{stats.published}</div>
-          <div className="stat-desc">Published & Live</div>
+          <div className="stat-desc">{t('ui.k308')}</div>
         </div>
         <div className="author-stat-card stat-pending">
           <Clock size={20} className="stat-card-icon" />
           <div className="stat-number">{stats.pending}</div>
-          <div className="stat-desc">Pending Review</div>
+          <div className="stat-desc">{t('ui.k291')}</div>
         </div>
         <div className="author-stat-card stat-draft">
           <Edit3 size={20} className="stat-card-icon" />
           <div className="stat-number">{stats.drafts}</div>
-          <div className="stat-desc">Drafts</div>
+          <div className="stat-desc">{t('ui.k153')}</div>
         </div>
         <div className="author-stat-card stat-rejected">
           <AlertTriangle size={20} className="stat-card-icon" />
           <div className="stat-number">{stats.rejected}</div>
-          <div className="stat-desc">Changes Needed</div>
+          <div className="stat-desc">{t('ui.k110')}</div>
         </div>
         <div className="author-stat-card stat-views">
           <Eye size={20} className="stat-card-icon" />
           <div className="stat-number">{stats.totalViews}</div>
-          <div className="stat-desc">Total Reads</div>
+          <div className="stat-desc">{t('ui.k425')}</div>
         </div>
       </div>
 
@@ -158,32 +157,27 @@ export default function MyArticles() {
         <button
           className={`tab-item ${activeTab === 'ALL' ? 'active' : ''}`}
           onClick={() => handleTabChange('ALL')}
-        >
-          All ({stats.total})
+        >{t('ui.k046')}{stats.total})
         </button>
         <button
           className={`tab-item ${activeTab === 'PUBLISHED' ? 'active' : ''}`}
           onClick={() => handleTabChange('PUBLISHED')}
-        >
-          Published ({stats.published})
+        >{t('ui.k309')}{stats.published})
         </button>
         <button
           className={`tab-item ${activeTab === 'PENDING_REVIEW' ? 'active' : ''}`}
           onClick={() => handleTabChange('PENDING_REVIEW')}
-        >
-          Under Review ({stats.pending})
+        >{t('ui.k431')}{stats.pending})
         </button>
         <button
           className={`tab-item ${activeTab === 'DRAFT' ? 'active' : ''}`}
           onClick={() => handleTabChange('DRAFT')}
-        >
-          Drafts ({stats.drafts})
+        >{t('ui.k154')}{stats.drafts})
         </button>
         <button
           className={`tab-item ${activeTab === 'REJECTED' ? 'active' : ''}`}
           onClick={() => handleTabChange('REJECTED')}
-        >
-          Changes Requested ({stats.rejected})
+        >{t('ui.k111')}{stats.rejected})
         </button>
       </div>
 
@@ -191,7 +185,7 @@ export default function MyArticles() {
       {loading ? (
         <div className="knowledge-loading">
           <Droplets size={28} className="spin-icon" />
-          <p>Loading your articles...</p>
+          <p>{t('ui.k237')}</p>
         </div>
       ) : error ? (
         <div className="alert-error" role="alert">
@@ -200,15 +194,14 @@ export default function MyArticles() {
       ) : filteredArticles.length === 0 ? (
         <div className="knowledge-empty-state">
           <FileText size={48} className="empty-icon" />
-          <h3>No articles in this section</h3>
+          <h3>{t('ui.k273')}</h3>
           <p>
             {activeTab === 'ALL'
               ? "You haven't written any water conservation articles yet."
               : `You have no articles currently matching the "${activeTab.toLowerCase().replace('_', ' ')}" status.`}
           </p>
           <Link to="/articles/submit" className="button button-primary">
-            <PlusCircle size={16} /> Write Your First Article
-          </Link>
+            <PlusCircle size={16} />{t('ui.k464')}</Link>
         </div>
       ) : (
         <div className="my-articles-list">
@@ -229,8 +222,7 @@ export default function MyArticles() {
                         : 'Draft'}
                     </span>
                     <span className="row-category-pill">{art.category?.name}</span>
-                    <span className="row-date">
-                      Updated {new Date(art.updatedAt || art.createdAt).toLocaleDateString()}
+                    <span className="row-date">{t('ui.k433')}{new Date(art.updatedAt || art.createdAt).toLocaleDateString()}
                     </span>
                   </div>
 
@@ -249,7 +241,7 @@ export default function MyArticles() {
                     <div className="row-rejection-callout">
                       <div className="callout-header">
                         <AlertTriangle size={15} />
-                        <strong>Reviewer Feedback:</strong>
+                        <strong>{t('ui.k362')}</strong>
                       </div>
                       <p>{art.rejectionReason || art.latestFeedback}</p>
                     </div>
@@ -260,11 +252,9 @@ export default function MyArticles() {
                       <Clock size={13} /> {art.readTime || '5 min read'}
                     </span>
                     <span className="meta-item">
-                      <Eye size={13} /> {art.viewsCount || 0} views
-                    </span>
+                      <Eye size={13} /> {art.viewsCount || 0}{t('ui.k497')}</span>
                     <span className="meta-item">
-                      <FileText size={13} /> {(art.resources || []).length} resources
-                    </span>
+                      <FileText size={13} /> {(art.resources || []).length}{t('ui.k490')}</span>
                   </div>
                 </div>
 
@@ -275,8 +265,7 @@ export default function MyArticles() {
                       to={`/articles/${art.slug || art.id}`}
                       className="button button-outline button-small"
                     >
-                      <Eye size={14} /> View Live
-                    </Link>
+                      <Eye size={14} />{t('ui.k451')}</Link>
                   )}
 
                   {(art.status === 'DRAFT' || art.status === 'REJECTED') && (
@@ -285,22 +274,20 @@ export default function MyArticles() {
                       onClick={() => handleQuickSubmit(art.id)}
                       disabled={isBusy}
                     >
-                      <Send size={14} /> Submit for Review
-                    </button>
+                      <Send size={14} />{t('ui.k394')}</button>
                   )}
 
                   <Link
                     to={`/articles/edit/${art.id}`}
                     className="button button-outline button-small"
                   >
-                    <Edit3 size={14} /> Edit
-                  </Link>
+                    <Edit3 size={14} />{t('ui.k161')}</Link>
 
                   <button
                     className="icon-button delete-btn"
                     onClick={() => handleDelete(art.id, art.title)}
                     disabled={isBusy}
-                    title="Delete article"
+                    title={t('ui.a020')}
                     aria-label={`Delete ${art.title}`}
                   >
                     <Trash2 size={16} />

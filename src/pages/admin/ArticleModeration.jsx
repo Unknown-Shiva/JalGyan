@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useCallback } from 'react'
 import { adminService } from '../../services/adminService'
 import ArticleDetailModal from '../../components/admin/ArticleDetailModal'
@@ -16,6 +17,7 @@ function formatDate(dateStr) {
 }
 
 export default function ArticleModeration() {
+  const { t } = useTranslation();
   const [articles, setArticles] = useState([])
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 })
   const [loading, setLoading] = useState(true)
@@ -31,7 +33,7 @@ export default function ArticleModeration() {
       setArticles(data?.articles || [])
       setPagination(data?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 })
     } catch (err) {
-      setError(err.message || 'Failed to load pending articles.')
+      setError(t('admin.errors.loadPendingArticles'))
     } finally {
       setLoading(false)
     }
@@ -50,7 +52,7 @@ export default function ArticleModeration() {
   const handleArticleUpdated = ({ id, status }) => {
     setNotification({
       type: 'success',
-      message: `Article ${status === 'PUBLISHED' ? 'approved and published' : 'rejected'} successfully.`,
+      message: t(status === 'PUBLISHED' ? 'admin.notifications.articleApproved' : 'admin.notifications.articleRejected'),
     })
     // Refresh the current page of pending articles
     fetchPendingArticles(pagination.page)
@@ -69,16 +71,13 @@ export default function ArticleModeration() {
       <header className="adm-header">
         <div>
           <div className="adm-header-title-row">
-            <h1 className="adm-page-title">Article Moderation</h1>
+            <h1 className="adm-page-title">{t('ui.k069')}</h1>
             {pagination.total > 0 && (
               <span className="adm-badge adm-badge-pending-count">
-                {pagination.total} Pending Review
-              </span>
+                {pagination.total}{t('ui.k291')}</span>
             )}
           </div>
-          <p className="adm-page-subtitle">
-            Review community-submitted articles, verify conservation practices, check technical accuracy, and approve or reject submissions.
-          </p>
+          <p className="adm-page-subtitle">{t('ui.k359')}</p>
         </div>
 
         <button
@@ -86,14 +85,14 @@ export default function ArticleModeration() {
           className="button button-outline button-small"
           onClick={() => fetchPendingArticles(pagination.page)}
           disabled={loading}
-          aria-label="Refresh pending articles list"
+          aria-label={t('ui.a032')}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
             <polyline points="23 4 23 10 17 10" />
             <polyline points="1 20 1 14 7 14" />
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
           </svg>
-          {loading ? 'Refreshing…' : 'Refresh Queue'}
+          {loading ? t('ui.extra.refreshing') : t('ui.extra.refreshQueue')}
         </button>
       </header>
 
@@ -108,7 +107,7 @@ export default function ArticleModeration() {
             type="button"
             className="adm-banner-close"
             onClick={() => setNotification(null)}
-            aria-label="Dismiss notification"
+            aria-label={t('ui.a021')}
           >
             ×
           </button>
@@ -124,9 +123,7 @@ export default function ArticleModeration() {
             type="button"
             className="button button-outline button-small"
             onClick={() => fetchPendingArticles(pagination.page)}
-          >
-            Retry
-          </button>
+          >{t('ui.k353')}</button>
         </div>
       )}
 
@@ -134,8 +131,7 @@ export default function ArticleModeration() {
       <div className="adm-guide-box">
         <div className="adm-guide-icon" aria-hidden="true">💡</div>
         <div className="adm-guide-text">
-          <strong>Review Guidelines:</strong> Ensure submissions provide actionable water conservation guidance, verify cited references, and check for appropriate categorization. Approved articles immediately appear in the public knowledge base; rejections require an actionable explanation for the author.
-        </div>
+          <strong>{t('ui.k356')}</strong>{t('ui.k166')}</div>
       </div>
 
       {/* ── Pending Queue Table / Cards ────────────────────────────────── */}
@@ -162,21 +158,19 @@ export default function ArticleModeration() {
                 <polyline points="10 9 9 9 8 9" />
               </svg>
             </div>
-            <h3 className="adm-empty-title">All Caught Up!</h3>
-            <p className="adm-empty-desc">
-              There are no articles currently pending moderation review. New user submissions will appear here automatically.
-            </p>
+            <h3 className="adm-empty-title">{t('ui.k048')}</h3>
+            <p className="adm-empty-desc">{t('ui.k416')}</p>
           </div>
         ) : (
           <div className="adm-table-wrapper">
-            <table className="adm-table" aria-label="Articles pending review">
+            <table className="adm-table" aria-label={t('ui.a005')}>
               <thead>
                 <tr>
-                  <th scope="col" style={{ minWidth: '240px' }}>Article Details</th>
-                  <th scope="col">Category</th>
-                  <th scope="col">Author</th>
-                  <th scope="col">Submitted</th>
-                  <th scope="col" className="adm-text-right">Actions</th>
+                  <th scope="col" style={{ minWidth: '240px' }}>{t('ui.k068')}</th>
+                  <th scope="col">{t('ui.k108')}</th>
+                  <th scope="col">{t('ui.k085')}</th>
+                  <th scope="col">{t('ui.k395')}</th>
+                  <th scope="col" className="adm-text-right">{t('ui.k031')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -195,12 +189,12 @@ export default function ArticleModeration() {
                     </td>
                     <td>
                       <span className="adm-category-tag">
-                        {art.category?.name || 'Uncategorized'}
+                        {art.category?.name || t('ui.extra.uncategorized')}
                       </span>
                     </td>
                     <td>
                       <div className="adm-author-info-cell">
-                        <strong className="adm-author-name">{art.author?.name || 'Unknown'}</strong>
+                        <strong className="adm-author-name">{art.author?.name || t('ui.extra.unknown')}</strong>
                         <span className="adm-author-email">{art.author?.email || '—'}</span>
                       </div>
                     </td>
@@ -219,9 +213,7 @@ export default function ArticleModeration() {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                           <circle cx="12" cy="12" r="3" />
-                        </svg>
-                        Review
-                      </button>
+                        </svg>{t('ui.k355')}</button>
                     </td>
                   </tr>
                 ))}
@@ -233,10 +225,8 @@ export default function ArticleModeration() {
         {/* ── Pagination ────────────────────────────────────────────────── */}
         {!loading && pagination.total > 0 && (
           <div className="adm-pagination-bar">
-            <span className="adm-pagination-info">
-              Showing <strong>{startRecord}</strong> to <strong>{endRecord}</strong> of{' '}
-              <strong>{pagination.total}</strong> pending articles
-            </span>
+            <span className="adm-pagination-info">{t('ui.k381')}<strong>{startRecord}</strong>{' '}{t('ui.k491')}{' '}<strong>{endRecord}</strong>{' '}{t('ui.k486')}{' '}
+              <strong>{pagination.total}</strong>{t('ui.k488')}</span>
 
             <div className="adm-pagination-controls">
               <button
@@ -244,13 +234,10 @@ export default function ArticleModeration() {
                 className="button button-outline button-small"
                 onClick={() => handlePageChange(pagination.page - 1)}
                 disabled={pagination.page <= 1}
-                aria-label="Previous page"
-              >
-                ← Previous
-              </button>
+                aria-label={t('ui.a028')}
+              >{t('ui.k501')}</button>
 
-              <span className="adm-page-indicator" aria-current="page">
-                Page {pagination.page} of {pagination.totalPages}
+              <span className="adm-page-indicator" aria-current="page">{t('ui.k289')}{pagination.page}{' '}{t('ui.k486')}{' '}{pagination.totalPages}
               </span>
 
               <button
@@ -258,10 +245,8 @@ export default function ArticleModeration() {
                 className="button button-outline button-small"
                 onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={pagination.page >= pagination.totalPages}
-                aria-label="Next page"
-              >
-                Next →
-              </button>
+                aria-label={t('ui.a027')}
+              >{t('ui.k265')}</button>
             </div>
           </div>
         )}

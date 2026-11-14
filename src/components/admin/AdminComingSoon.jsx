@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 /**
  * AdminComingSoon — shared placeholder for admin sub-pages not yet implemented.
  * Shows a clear "coming soon" state rather than a blank or broken page.
  */
 export default function AdminComingSoon({ title, description }) {
+  const { t } = useTranslation();
   return (
     <div className="adm-coming-soon" role="status">
       <div className="adm-coming-icon" aria-hidden="true">
@@ -13,7 +15,7 @@ export default function AdminComingSoon({ title, description }) {
       </div>
       <h2 className="adm-coming-title">{title}</h2>
       <p className="adm-coming-desc">{description ?? 'This section is under development and will be available soon.'}</p>
-      <span className="adm-coming-badge">Coming in a future phase</span>
+      <span className="adm-coming-badge">{t('ui.k115')}</span>
     </div>
   )
 }

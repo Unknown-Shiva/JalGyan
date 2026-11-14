@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -17,6 +18,7 @@ import { categoryService } from '../services/categoryService';
 import { useAuth } from '../hooks/useAuth';
 
 export default function EditArticle() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -53,13 +55,13 @@ export default function EditArticle() {
 
         const art = artData?.article;
         if (!art) {
-          setError('Article not found.');
+          setError(t('errors.articleMissing'));
           return;
         }
 
         // Authorization check
         if (user && art.author?.id && art.author.id !== user.id && user.role !== 'ADMIN') {
-          setError('You do not have permission to edit this article.');
+          setError(t('errors.articlePermission'));
           return;
         }
 
@@ -82,7 +84,7 @@ export default function EditArticle() {
         );
       })
       .catch((err) => {
-        if (active) setError(err.message || 'Failed to load article details.');
+        if (active) setError(err.message || t('errors.articleLoad'));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -117,19 +119,19 @@ export default function EditArticle() {
     setSuccessMessage('');
 
     if (!title.trim() || title.trim().length < 8) {
-      setError('Title must be at least 8 characters long.');
+      setError(t('errors.articleTitle'));
       return;
     }
     if (!categoryId) {
-      setError('Please select a water conservation category.');
+      setError(t('errors.articleCategory'));
       return;
     }
     if (!summary.trim() || summary.trim().length < 20) {
-      setError('Summary must be at least 20 characters long.');
+      setError(t('errors.articleSummary'));
       return;
     }
     if (!content.trim() || content.trim().length < 50) {
-      setError('Article content must be at least 50 characters long.');
+      setError(t('errors.articleContent'));
       return;
     }
 
@@ -166,7 +168,7 @@ export default function EditArticle() {
         navigate('/my-articles');
       }, 1500);
     } catch (err) {
-      setError(err.message || 'Failed to update article.');
+      setError(err.message || t('errors.articleUpdate'));
     } finally {
       setSubmitting(false);
     }
@@ -176,7 +178,7 @@ export default function EditArticle() {
     return (
       <div className="article-detail-loading">
         <Droplets size={32} className="spin-icon" />
-        <p>Loading article editor...</p>
+        <p>{t('ui.k233')}</p>
       </div>
     );
   }
@@ -185,11 +187,10 @@ export default function EditArticle() {
     return (
       <div className="knowledge-empty-state">
         <AlertCircle size={48} className="empty-icon" color="#b14e44" />
-        <h3>Cannot edit article</h3>
+        <h3>{t('ui.k107')}</h3>
         <p>{error}</p>
         <Link to="/knowledge" className="button button-primary">
-          <ArrowLeft size={16} /> Return to Library
-        </Link>
+          <ArrowLeft size={16} />{t('ui.k354')}</Link>
       </div>
     );
   }
@@ -198,14 +199,13 @@ export default function EditArticle() {
     <div className="submit-article-page">
       <div className="form-header-row">
         <Link to="/my-articles" className="back-link">
-          <ArrowLeft size={16} /> Back to My Articles
-        </Link>
-        <span className="eyebrow">EDITING ARTICLE &bull; ID: {originalArticle?.id}</span>
+          <ArrowLeft size={16} />{t('ui.k091')}</Link>
+        <span className="eyebrow">{t('ui.k159')}{' '}{originalArticle?.id}</span>
       </div>
 
       <div className="form-title-area">
-        <h1>Edit Article</h1>
-        <p>Refine your article content, update attached resources, or address reviewer feedback.</p>
+        <h1>{t('ui.k162')}</h1>
+        <p>{t('ui.k326')}</p>
       </div>
 
       {/* Review Feedback Alert if REJECTED */}
@@ -215,11 +215,9 @@ export default function EditArticle() {
             <AlertTriangle size={22} />
           </div>
           <div className="feedback-content">
-            <h4>Editorial Feedback from Reviewer</h4>
+            <h4>{t('ui.k163')}</h4>
             <p>{rejectionReason}</p>
-            <span className="feedback-tip">
-              Please address the points above and click "Save & Resubmit for Review" below.
-            </span>
+            <span className="feedback-tip">{t('ui.k299')}</span>
           </div>
         </div>
       )}
@@ -239,7 +237,7 @@ export default function EditArticle() {
       <div className="submit-form-card">
         {/* Title */}
         <div className="form-group">
-          <label htmlFor="edit-title">Article Title</label>
+          <label htmlFor="edit-title">{t('ui.k072')}</label>
           <input
             id="edit-title"
             type="text"
@@ -253,7 +251,7 @@ export default function EditArticle() {
         {/* Category & Read Time Row */}
         <div className="form-row-2">
           <div className="form-group">
-            <label htmlFor="edit-category">Domain Category</label>
+            <label htmlFor="edit-category">{t('ui.k150')}</label>
             <select
               id="edit-category"
               value={categoryId}
@@ -269,7 +267,7 @@ export default function EditArticle() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="edit-read-time">Estimated Read Time</label>
+            <label htmlFor="edit-read-time">{t('ui.k171')}</label>
             <input
               id="edit-read-time"
               type="text"
@@ -282,7 +280,7 @@ export default function EditArticle() {
 
         {/* Summary */}
         <div className="form-group">
-          <label htmlFor="edit-summary">Summary / Executive Abstract</label>
+          <label htmlFor="edit-summary">{t('ui.k399')}</label>
           <textarea
             id="edit-summary"
             rows={3}
@@ -295,7 +293,7 @@ export default function EditArticle() {
 
         {/* Cover Image URL */}
         <div className="form-group">
-          <label htmlFor="edit-cover">Cover Image URL</label>
+          <label htmlFor="edit-cover">{t('ui.k129')}</label>
           <input
             id="edit-cover"
             type="url"
@@ -305,7 +303,7 @@ export default function EditArticle() {
           />
           {coverImage && (
             <div className="cover-preview">
-              <img src={coverImage} alt="Cover Preview" />
+              <img src={coverImage} alt={t('ui.a019')} />
             </div>
           )}
         </div>
@@ -313,22 +311,20 @@ export default function EditArticle() {
         {/* Markdown Content */}
         <div className="form-group">
           <div className="editor-tab-header">
-            <label>Full Article Body</label>
+            <label>{t('ui.k187')}</label>
             <div className="tab-buttons">
               <button
                 type="button"
                 className={`tab-btn ${activeTab === 'write' ? 'active' : ''}`}
                 onClick={() => setActiveTab('write')}
               >
-                <Edit3 size={14} /> Write
-              </button>
+                <Edit3 size={14} />{t('ui.k463')}</button>
               <button
                 type="button"
                 className={`tab-btn ${activeTab === 'preview' ? 'active' : ''}`}
                 onClick={() => setActiveTab('preview')}
               >
-                <Eye size={14} /> Live Preview
-              </button>
+                <Eye size={14} />{t('ui.k232')}</button>
             </div>
           </div>
 
@@ -354,16 +350,15 @@ export default function EditArticle() {
         <div className="form-group resources-builder-section">
           <div className="resources-builder-header">
             <div>
-              <label>Attached Resources</label>
-              <p className="field-hint">Manage technical PDFs, video URLs, and research data.</p>
+              <label>{t('ui.k077')}</label>
+              <p className="field-hint">{t('ui.k245')}</p>
             </div>
             <button
               type="button"
               className="button button-outline button-small"
               onClick={handleAddResource}
             >
-              <Plus size={14} /> Add Resource
-            </button>
+              <Plus size={14} />{t('ui.k039')}</button>
           </div>
 
           <div className="resources-form-list">
@@ -372,7 +367,7 @@ export default function EditArticle() {
                 <div className="res-input-title">
                   <input
                     type="text"
-                    placeholder="Resource Title"
+                    placeholder={t('ui.a037')}
                     value={res.title}
                     onChange={(e) => handleUpdateResource(index, 'title', e.target.value)}
                     className="form-input"
@@ -381,7 +376,7 @@ export default function EditArticle() {
                 <div className="res-input-url">
                   <input
                     type="url"
-                    placeholder="https://..."
+                    placeholder={t('ui.a058')}
                     value={res.url}
                     onChange={(e) => handleUpdateResource(index, 'url', e.target.value)}
                     className="form-input"
@@ -393,17 +388,17 @@ export default function EditArticle() {
                     onChange={(e) => handleUpdateResource(index, 'type', e.target.value)}
                     className="form-select"
                   >
-                    <option value="PDF">PDF Document</option>
-                    <option value="VIDEO">Video Tutorial</option>
-                    <option value="DATASET">Dataset / Sheet</option>
-                    <option value="LINK">External Link</option>
+                    <option value="PDF">{t('ui.k288')}</option>
+                    <option value="VIDEO">{t('ui.k448')}</option>
+                    <option value="DATASET">{t('ui.k138')}</option>
+                    <option value="LINK">{t('ui.k174')}</option>
                   </select>
                 </div>
                 <button
                   type="button"
                   className="icon-button delete-res-btn"
                   onClick={() => handleRemoveResource(index)}
-                  title="Remove resource"
+                  title={t('ui.a036')}
                 >
                   <Trash2 size={16} />
                 </button>
@@ -419,16 +414,14 @@ export default function EditArticle() {
             className="button button-outline"
             disabled={submitting}
             onClick={() => handleSubmit(false)}
-          >
-            Save Changes
-          </button>
+          >{t('ui.k370')}</button>
           <button
             type="button"
             className="button button-primary"
             disabled={submitting}
             onClick={() => handleSubmit(true)}
           >
-            {submitting ? 'Saving...' : 'Save & Submit for Review'}
+            {submitting ? t('common.saving') : t('ui.extra.saveAndSubmitReview')}
           </button>
         </div>
       </div>

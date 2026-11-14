@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 /**
  * ActivityFeed — recent administrative action log.
  */
@@ -23,8 +24,9 @@ const ACTION_ACCENTS = {
 }
 
 function ActionBadge({ type }) {
+  const { t } = useTranslation()
   const accent = ACTION_ACCENTS[type] ?? 'muted'
-  const label = ACTION_LABELS[type] ?? type?.replace(/_/g, ' ') ?? 'Action'
+  const label = ACTION_LABELS[type] ? t(`admin.actions.${type}`) : type?.replace(/_/g, ' ') ?? t('common.action')
   return <span className={`adm-action-badge adm-action-badge-${accent}`}>{label}</span>
 }
 
@@ -72,14 +74,13 @@ function ActivityRow({ item }) {
 }
 
 export default function ActivityFeed({ activity = [], loading }) {
+  const { t } = useTranslation();
   return (
     <section className="adm-section" aria-labelledby="section-activity">
       <h2 className="adm-section-title" id="section-activity">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-        Recent Administrative Activity
-      </h2>
+        </svg>{t('ui.k323')}</h2>
 
       {loading ? (
         <div className="adm-activity-skeleton" aria-hidden="true">
@@ -97,17 +98,17 @@ export default function ActivityFeed({ activity = [], loading }) {
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" style={{ color: 'var(--muted)', marginBottom: 10 }}>
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
-          <p>No administrative actions recorded yet.</p>
+          <p>{t('ui.k271')}</p>
         </div>
       ) : (
         <div className="adm-activity-table-wrap">
           <table className="adm-activity-table">
             <thead>
               <tr>
-                <th scope="col">Action</th>
-                <th scope="col">Target</th>
-                <th scope="col">Administrator</th>
-                <th scope="col">Timestamp</th>
+                <th scope="col">{t('ui.k027')}</th>
+                <th scope="col">{t('ui.k408')}</th>
+                <th scope="col">{t('ui.k043')}</th>
+                <th scope="col">{t('ui.k417')}</th>
               </tr>
             </thead>
             <tbody>

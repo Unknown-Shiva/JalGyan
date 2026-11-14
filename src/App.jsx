@@ -27,7 +27,8 @@ import { useAuth } from './hooks/useAuth';
 
 function Protected({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="loading-state">Verifying session...</div>;
+  const { t } = useTranslation();
+  if (loading) return <div className="loading-state">{t('app.verifying')}</div>;
   return user ? children : <Navigate to="/login" replace />;
 }
 

@@ -3,16 +3,12 @@ import { Flag } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { REPORT_REASONS, submitReport } from '../../services/reportService'
-
-function feedbackFor(error) {
-  if (error?.status === 400) return error.message || 'Check the report details and try again.'
-  if (error?.status === 401) return 'Your session has expired. Please sign in again.'
-  if (error?.status === 404) return 'This content is no longer available to report.'
-  return 'We could not submit your report. Please try again.'
-}
+import { useTranslation } from 'react-i18next'
 
 export default function ReportControl({ targetType, targetId, targetLabel = 'content' }) {
   const { user } = useAuth()
+  const { t } = useTranslation()
+  const targetText = t(`report.targets.${targetLabel}`)
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState('')
@@ -64,7 +60,7 @@ export default function ReportControl({ targetType, targetId, targetLabel = 'con
       await submitReport({ targetType, targetId, reason, description })
       setSubmitted(true)
     } catch (requestError) {
-      setError(feedbackFor(requestError))
+      setError(requestError?.status === 400 ? t('report.invalid') : requestError?.status === 401 ? t('report.sessionExpired') : requestError?.status === 404 ? t('report.unavailable') : t('report.failed'))
     } finally {
       submittingRef.current = false
       setSubmitting(false)
@@ -76,10 +72,10 @@ export default function ReportControl({ targetType, targetId, targetLabel = 'con
       type="button"
       className="post-action report-control"
       onClick={startReport}
-      aria-label={`Report ${targetLabel}`}
-      title={`Report ${targetLabel}`}
+      aria-label={`${t('report.report')} ${targetText}`}
+      title={`${t('report.report')} ${targetText}`}
     >
-      <Flag size={15}/><span>Report</span>
+      <Flag size={15}/><span>{t('report.report')}</span>
     </button>
     {open && <div
       className="report-modal-backdrop"
@@ -88,39 +84,39 @@ export default function ReportControl({ targetType, targetId, targetLabel = 'con
     >
       <section className="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-dialog-title">
         {submitted ? <>
-          <div className="report-modal-header"><h2 id="report-dialog-title">Report submitted</h2></div>
+          <div className="report-modal-header"><h2 id="report-dialog-title">{t('report.submitted')}</h2></div>
           <div className="report-modal-body">
-            <p className="report-success" role="status">Thank you. Your report has been sent to the moderation team.</p>
-            <div className="report-modal-actions"><button type="button" className="button button-primary" onClick={close}>Done</button></div>
+            <p className="report-success" role="status">{t('report.thanks')}</p>
+            <div className="report-modal-actions"><button type="button" className="button button-primary" onClick={close}>{t('report.done')}</button></div>
           </div>
         </> : <>
           <div className="report-modal-header">
-            <div><span className="eyebrow">COMMUNITY SAFETY</span><h2 id="report-dialog-title">Report {targetLabel}</h2></div>
-            <button type="button" className="icon-button" aria-label="Close report form" onClick={close} disabled={submitting}>×</button>
+            <div><span className="eyebrow">{t('report.safety')}</span><h2 id="report-dialog-title">{t('report.report')} {targetText}</h2></div>
+            <button type="button" className="icon-button" aria-label={t('common.close')} onClick={close} disabled={submitting}>×</button>
           </div>
           <form className="report-modal-body" onSubmit={submit}>
-            <label>Reason
+            <label>{t('report.reason')}
               <select value={reason} onChange={event => setReason(event.target.value)} required disabled={submitting}>
-                <option value="">Choose a reason</option>
-                {REPORT_REASONS.map(option => <option value={option.value} key={option.value}>{option.label}</option>)}
+                <option value="">{t('report.chooseReason')}</option>
+                {REPORT_REASONS.map(option => <option value={option.value} key={option.value}>{t(`report.reasons.${option.value}`)}</option>)}
               </select>
             </label>
-            <label>Additional details <span className="optional">(optional)</span>
+            <label>{t('report.details')} <span className="optional">{t('auth.optional')}</span>
               <textarea
                 value={description}
                 onChange={event => setDescription(event.target.value)}
                 maxLength={2000}
                 rows={4}
-                placeholder="Share any context that may help us review this report."
+                placeholder={t('report.context')}
                 disabled={submitting}
               />
               <span className="report-character-count">{description.length}/2000</span>
             </label>
             {error && <div className="alert-error" role="alert">{error}</div>}
             <div className="report-modal-actions">
-              <button type="button" className="button button-outline" onClick={close} disabled={submitting}>Cancel</button>
+              <button type="button" className="button button-outline" onClick={close} disabled={submitting}>{t('common.cancel')}</button>
               <button type="submit" className="button button-primary" disabled={submitting || !reason}>
-                {submitting ? 'Sending…' : 'Submit report'}
+                {submitting ? t('report.sending') : t('report.submit')}
               </button>
             </div>
           </form>

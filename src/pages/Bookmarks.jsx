@@ -3,17 +3,19 @@ import { Bookmark, BookOpen, Clock3, ArrowUpRight, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { bookmarkService } from '../services/bookmarkService'
+import { useTranslation } from 'react-i18next'
 
-function requestErrorMessage(error, action) {
-  if (error?.status === 401) return 'Your session has expired. Please sign in again.'
-  if (error?.status === 404 && action === 'remove') return 'This article is no longer available.'
+function requestErrorMessage(error, action, t) {
+  if (error?.status === 401) return t('bookmarks.sessionExpired')
+  if (error?.status === 404 && action === 'remove') return t('bookmarks.articleMissing')
   return action === 'remove'
-    ? 'We could not remove this bookmark. Please try again.'
-    : 'Saved articles could not be loaded. Please try again.'
+    ? t('bookmarks.removeError')
+    : t('bookmarks.loadError')
 }
 
 export default function Bookmarks() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const [items, setItems] = useState([])
   const [ownerId, setOwnerId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -46,7 +48,7 @@ export default function Bookmarks() {
         if (active) setItems(bookmarks)
       })
       .catch(error => {
-        if (active) setLoadError(requestErrorMessage(error, 'load'))
+        if (active) setLoadError(requestErrorMessage(error, 'load', t))
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -70,7 +72,7 @@ export default function Bookmarks() {
         setItems(current => current.filter(item => item.article?.id !== articleId))
       }
     } catch (error) {
-      if (activeUserId.current === userId) setRemoveError(requestErrorMessage(error, 'remove'))
+      if (activeUserId.current === userId) setRemoveError(requestErrorMessage(error, 'remove', t))
     } finally {
       removingRef.current.delete(operationKey)
       if (activeUserId.current === userId) {
@@ -89,18 +91,18 @@ export default function Bookmarks() {
 
   return <div className="bookmarks-page">
     <div className="page-heading">
-      <span className="eyebrow">YOUR PERSONAL LIBRARY</span>
-      <h1>Saved resources</h1>
-      <p>Articles and practical guidance you have kept for later.</p>
+      <span className="eyebrow">{t('bookmarks.eyebrow')}</span>
+      <h1>{t('bookmarks.title')}</h1>
+      <p>{t('bookmarks.intro')}</p>
     </div>
 
     {removeError && <div className="alert-error" role="alert">{removeError}</div>}
-    {loading && <div className="loading-state" role="status">Loading saved articles…</div>}
+    {loading && <div className="loading-state" role="status">{t('bookmarks.loading')}</div>}
     {!loading && loadError && <div className="empty-state">
       <Bookmark size={30}/>
-      <h3>Saved articles are unavailable</h3>
+      <h3>{t('bookmarks.unavailable')}</h3>
       <p>{loadError}</p>
-      <button className="button button-primary" onClick={retry}>Try again</button>
+      <button className="button button-primary" onClick={retry}>{t('common.retry')}</button>
     </div>}
     {!loading && !loadError && <div className="bookmark-list">
       {visibleItems.map(bookmark => {
@@ -110,7 +112,7 @@ export default function Bookmarks() {
         return <article className="bookmark-card" key={bookmark.id}>
           <div className="bookmark-icon"><BookOpen size={21}/></div>
           <div className="bookmark-info">
-            <span className="category-pill">{article.category?.name || 'Article'}</span>
+            <span className="category-pill">{article.category?.name || t('common.article')}</span>
             <h3>{article.title}</h3>
             {article.summary && <p>{article.summary}</p>}
             {article.readTime && <span className="read-time"><Clock3 size={13}/>{article.readTime}</span>}
@@ -119,21 +121,21 @@ export default function Bookmarks() {
             <button
               className="icon-button"
               onClick={() => remove(bookmark)}
-              title="Remove bookmark"
-              aria-label={`Remove bookmark for ${article.title}`}
+              title={t('common.removeBookmark')}
+              aria-label={t('common.removeBookmarkFor', { title: article.title })}
               disabled={removing}
             >
               <Trash2 size={17}/>
             </button>
-            <Link to={`/articles/${article.slug || article.id}`} className="text-button">Read Article <ArrowUpRight size={15}/></Link>
+            <Link to={`/articles/${article.slug || article.id}`} className="text-button">{t('common.readArticle')} <ArrowUpRight size={15}/></Link>
           </div>
         </article>
       })}
       {!visibleItems.length && <div className="empty-state">
         <Bookmark size={30}/>
-        <h3>No saved resources yet</h3>
-        <p>Articles you bookmark will appear here.</p>
-        <Link to="/knowledge" className="button button-primary">Browse Knowledge Library</Link>
+        <h3>{t('bookmarks.emptyTitle')}</h3>
+        <p>{t('bookmarks.emptyBody')}</p>
+        <Link to="/knowledge" className="button button-primary">{t('bookmarks.browse')}</Link>
       </div>}
     </div>}
   </div>

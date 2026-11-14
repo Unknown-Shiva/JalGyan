@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useCallback } from 'react'
 import { adminService } from '../../services/adminService'
 
@@ -39,8 +40,9 @@ const ACTION_ACCENTS = {
 }
 
 function ActionBadge({ type }) {
+  const { t } = useTranslation()
   const accent = ACTION_ACCENTS[type] ?? 'muted'
-  const label = ACTION_LABELS[type] ?? type?.replace(/_/g, ' ') ?? 'Action'
+  const label = ACTION_LABELS[type] ? t(`admin.actions.${type}`) : type?.replace(/_/g, ' ') ?? t('common.action')
   return <span className={`adm-action-badge adm-action-badge-${accent}`}>{label}</span>
 }
 
@@ -71,6 +73,7 @@ export default function ActivityDetailModal({
   activityId,
   onClose,
 }) {
+  const { t } = useTranslation();
   const [activity, setActivity] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -84,11 +87,11 @@ export default function ActivityDetailModal({
       const data = await adminService.getAdminActivityById(activityId)
       setActivity(data?.action || data)
     } catch (err) {
-      setError(err.message || 'Failed to load activity log details.')
+      setError(err.message || t('admin.errors.loadActivityDetails'))
     } finally {
       setLoading(false)
     }
-  }, [activityId])
+  }, [activityId, t])
 
   useEffect(() => {
     loadDetails()
@@ -124,9 +127,7 @@ export default function ActivityDetailModal({
         {/* ── Modal Header ──────────────────────────────────────────────── */}
         <div className="adm-modal-header">
           <div className="adm-modal-title-group">
-            <h2 id="activity-detail-title" className="adm-modal-title">
-              Audit Log Record
-            </h2>
+            <h2 id="activity-detail-title" className="adm-modal-title">{t('ui.k083')}</h2>
             {activity?.actionType && (
               <ActionBadge type={activity.actionType} />
             )}
@@ -135,7 +136,7 @@ export default function ActivityDetailModal({
             type="button"
             className="adm-modal-close"
             onClick={onClose}
-            aria-label="Close audit log details"
+            aria-label={t('ui.a012')}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -163,9 +164,7 @@ export default function ActivityDetailModal({
                 type="button"
                 className="button button-outline button-small"
                 onClick={loadDetails}
-              >
-                Retry
-              </button>
+              >{t('ui.k353')}</button>
             </div>
           )}
 
@@ -174,31 +173,30 @@ export default function ActivityDetailModal({
               {/* Meta Grid */}
               <div className="adm-detail-meta-grid">
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Audit Log ID</span>
+                  <span className="adm-meta-label">{t('ui.k082')}</span>
                   <span className="adm-meta-mono">{activity.id}</span>
                 </div>
 
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Administrator</span>
+                  <span className="adm-meta-label">{t('ui.k043')}</span>
                   <strong className="adm-author-name">
                     {activity.admin?.name || 'Unknown Administrator'}
                   </strong>
                   <span className="adm-author-email">{activity.admin?.email || '—'}</span>
                   {activity.admin?.id && (
-                    <span className="adm-meta-desc">ID: {activity.admin.id}</span>
+                    <span className="adm-meta-desc">{t('ui.k203')}{' '}{activity.admin.id}</span>
                   )}
                 </div>
 
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Target Entity</span>
+                  <span className="adm-meta-label">{t('ui.k410')}</span>
                   <span className="adm-activity-entity">{activity.targetEntity || '—'}</span>
-                  <span className="adm-meta-mono" title={activity.targetId}>
-                    ID: {activity.targetId || '—'}
+                  <span className="adm-meta-mono" title={activity.targetId}>{t('ui.k203')}{activity.targetId || '—'}
                   </span>
                 </div>
 
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Timestamp</span>
+                  <span className="adm-meta-label">{t('ui.k417')}</span>
                   <span>{formatTimestamp(activity.createdAt)}</span>
                   <span className="adm-meta-desc">{activity.createdAt}</span>
                 </div>
@@ -207,9 +205,7 @@ export default function ActivityDetailModal({
               {/* Action Context Details */}
               <div className="adm-detail-section">
                 <div className="adm-target-section-header">
-                  <h3 className="adm-section-heading" style={{ margin: 0 }}>
-                    Action Context & Audit Snapshot
-                  </h3>
+                  <h3 className="adm-section-heading" style={{ margin: 0 }}>{t('ui.k028')}</h3>
                   {sanitized && (
                     <button
                       type="button"
@@ -247,7 +243,7 @@ export default function ActivityDetailModal({
                 )}
 
                 {!sanitized && (
-                  <p className="adm-muted-text">No additional contextual details recorded for this action.</p>
+                  <p className="adm-muted-text">{t('ui.k269')}</p>
                 )}
               </div>
             </div>
@@ -260,9 +256,7 @@ export default function ActivityDetailModal({
             type="button"
             className="button button-outline"
             onClick={onClose}
-          >
-            Close
-          </button>
+          >{t('ui.k114')}</button>
         </div>
       </div>
     </div>

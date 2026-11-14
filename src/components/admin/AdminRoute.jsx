@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -7,12 +8,13 @@ import { useAuth } from '../../hooks/useAuth';
  * Handles session loading and redirects unauthenticated or non-admin users.
  */
 export default function AdminRoute({ children }) {
+  const { t } = useTranslation();
   const { user, loading, isAdmin } = useAuth();
   const location = useLocation();
 
   // Show loading indicator while session is being verified
   if (loading) {
-    return <div className="loading-state">Verifying administrative access...</div>;
+    return <div className="loading-state">{t('ui.k446')}</div>;
   }
 
   // Redirect unauthenticated visitors to login

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useCallback } from 'react'
 import { adminService } from '../../services/adminService'
 import ActivityDetailModal from '../../components/admin/ActivityDetailModal'
@@ -44,12 +45,14 @@ const ACTION_ACCENTS = {
 }
 
 function ActionBadge({ type }) {
+  const { t } = useTranslation()
   const accent = ACTION_ACCENTS[type] ?? 'muted'
-  const label = ACTION_LABELS[type] ?? type?.replace(/_/g, ' ') ?? 'Action'
+  const label = ACTION_LABELS[type] ? t(`admin.actions.${type}`) : type?.replace(/_/g, ' ') ?? t('common.action')
   return <span className={`adm-action-badge adm-action-badge-${accent}`}>{label}</span>
 }
 
 export default function AdminActivity() {
+  const { t } = useTranslation();
   // Activity logs state
   const [activities, setActivities] = useState([])
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 1 })
@@ -112,7 +115,7 @@ export default function AdminActivity() {
       setActivities(data?.actions || [])
       setPagination(data?.pagination || { page: targetPage, limit: 20, total: 0, totalPages: 1 })
     } catch (err) {
-      setError(err.message || 'Failed to load administrative audit logs.')
+      setError(t('admin.errors.loadActivity'))
     } finally {
       setLoading(false)
     }
@@ -165,16 +168,14 @@ export default function AdminActivity() {
       <header className="adm-header">
         <div>
           <div className="adm-header-title-row">
-            <h1 className="adm-page-title">Admin Activity & Audit Logs</h1>
+            <h1 className="adm-page-title">{t('ui.k040')}</h1>
             {summary && (
               <span className="adm-badge adm-badge-users-count">
-                {summary.totalActions} Total Action{summary.totalActions === 1 ? '' : 's'}
+                {summary.totalActions}{' '}{t('ui.k422')}{summary.totalActions === 1 ? '' : 's'}
               </span>
             )}
           </div>
-          <p className="adm-page-subtitle">
-            Immutable chronological audit trail recording all administrative mutations, article reviews, user suspensions, and report resolutions.
-          </p>
+          <p className="adm-page-subtitle">{t('ui.k204')}</p>
         </div>
 
         <button
@@ -185,14 +186,14 @@ export default function AdminActivity() {
             fetchActivities(pagination.page)
           }}
           disabled={loading}
-          aria-label="Refresh audit logs"
+          aria-label={t('ui.a030')}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
             <polyline points="23 4 23 10 17 10" />
             <polyline points="1 20 1 14 7 14" />
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
           </svg>
-          {loading ? 'Refreshing…' : 'Refresh Logs'}
+          {loading ? t('ui.extra.refreshing') : t('ui.extra.refreshLogs')}
         </button>
       </header>
 
@@ -201,24 +202,24 @@ export default function AdminActivity() {
         <section className="adm-section" aria-labelledby="section-summary-overview" aria-busy="true">
           <div className="adm-stat-group">
             <div className="adm-stat-card adm-stat-accent-blue">
-              <span className="adm-stat-label">Total Actions</span>
+              <span className="adm-stat-label">{t('ui.k423')}</span>
               <strong className="adm-stat-value">…</strong>
-              <span className="adm-stat-sub">Lifetime logged</span>
+              <span className="adm-stat-sub">{t('ui.k230')}</span>
             </div>
             <div className="adm-stat-card adm-stat-accent-green">
-              <span className="adm-stat-label">Last 7 Days</span>
+              <span className="adm-stat-label">{t('ui.k226')}</span>
               <strong className="adm-stat-value">…</strong>
-              <span className="adm-stat-sub">Recent activity</span>
+              <span className="adm-stat-sub">{t('ui.k324')}</span>
             </div>
             <div className="adm-stat-card adm-stat-accent-orange">
-              <span className="adm-stat-label">Last 30 Days</span>
+              <span className="adm-stat-label">{t('ui.k225')}</span>
               <strong className="adm-stat-value">…</strong>
-              <span className="adm-stat-sub">Monthly activity</span>
+              <span className="adm-stat-sub">{t('ui.k255')}</span>
             </div>
             <div className="adm-stat-card adm-stat-accent-muted">
-              <span className="adm-stat-label">Active Administrators</span>
+              <span className="adm-stat-label">{t('ui.k036')}</span>
               <strong className="adm-stat-value">…</strong>
-              <span className="adm-stat-sub">Active admin accounts</span>
+              <span className="adm-stat-sub">{t('ui.k037')}</span>
             </div>
           </div>
         </section>
@@ -228,27 +229,27 @@ export default function AdminActivity() {
         <section className="adm-section" aria-labelledby="section-summary-overview">
           <div className="adm-stat-group">
             <div className="adm-stat-card adm-stat-accent-blue">
-              <span className="adm-stat-label">Total Actions</span>
+              <span className="adm-stat-label">{t('ui.k423')}</span>
               <strong className="adm-stat-value">{formatINNumber(summary.totalActions)}</strong>
-              <span className="adm-stat-sub">Lifetime logged</span>
+              <span className="adm-stat-sub">{t('ui.k230')}</span>
             </div>
 
             <div className="adm-stat-card adm-stat-accent-green">
-              <span className="adm-stat-label">Last 7 Days</span>
+              <span className="adm-stat-label">{t('ui.k226')}</span>
               <strong className="adm-stat-value">{formatINNumber(summary.activityLast7Days)}</strong>
-              <span className="adm-stat-sub">Recent activity</span>
+              <span className="adm-stat-sub">{t('ui.k324')}</span>
             </div>
 
             <div className="adm-stat-card adm-stat-accent-orange">
-              <span className="adm-stat-label">Last 30 Days</span>
+              <span className="adm-stat-label">{t('ui.k225')}</span>
               <strong className="adm-stat-value">{formatINNumber(summary.activityLast30Days)}</strong>
-              <span className="adm-stat-sub">Monthly activity</span>
+              <span className="adm-stat-sub">{t('ui.k255')}</span>
             </div>
 
             <div className="adm-stat-card adm-stat-accent-muted">
-              <span className="adm-stat-label">Active Administrators</span>
+              <span className="adm-stat-label">{t('ui.k036')}</span>
               <strong className="adm-stat-value">{formatINNumber(summary.activeAdministrators)}</strong>
-              <span className="adm-stat-sub">Active admin accounts</span>
+              <span className="adm-stat-sub">{t('ui.k037')}</span>
             </div>
           </div>
 
@@ -257,7 +258,7 @@ export default function AdminActivity() {
             {/* By Action Type */}
             {Object.keys(byActionType).length > 0 && (
               <div className="adm-breakdown-panel">
-                <h3 className="adm-breakdown-title">Actions by Type</h3>
+                <h3 className="adm-breakdown-title">{t('ui.k033')}</h3>
                 {Object.entries(byActionType).map(([actType, count]) => {
                   const pct = Math.round((count / totalSummaryActions) * 100)
                   return (
@@ -279,7 +280,7 @@ export default function AdminActivity() {
             {/* By Target Entity */}
             {Object.keys(byTargetEntity).length > 0 && (
               <div className="adm-breakdown-panel">
-                <h3 className="adm-breakdown-title">Actions by Target Entity</h3>
+                <h3 className="adm-breakdown-title">{t('ui.k032')}</h3>
                 {Object.entries(byTargetEntity).map(([entity, count]) => {
                   const pct = Math.round((count / totalSummaryActions) * 100)
                   return (
@@ -301,7 +302,7 @@ export default function AdminActivity() {
             {/* Top Administrators */}
             {topAdmins.length > 0 && (
               <div className="adm-breakdown-panel">
-                <h3 className="adm-breakdown-title">Top Administrators</h3>
+                <h3 className="adm-breakdown-title">{t('ui.k420')}</h3>
                 {topAdmins.slice(0, 5).map((admItem) => {
                   const pct = Math.round((admItem.actionCount / totalSummaryActions) * 100)
                   return (
@@ -332,9 +333,7 @@ export default function AdminActivity() {
             type="button"
             className="button button-outline button-small"
             onClick={() => fetchActivities(pagination.page)}
-          >
-            Retry
-          </button>
+          >{t('ui.k353')}</button>
         </div>
       )}
 
@@ -342,65 +341,65 @@ export default function AdminActivity() {
       <div className="adm-filter-toolbar">
         {/* Action Type Filter */}
         <div className="adm-filter-group">
-          <label htmlFor="filter-action-type" className="adm-filter-label">Action:</label>
+          <label htmlFor="filter-action-type" className="adm-filter-label">{t('ui.k030')}</label>
           <select
             id="filter-action-type"
             className="adm-select"
             value={actionTypeFilter}
             onChange={(e) => setActionTypeFilter(e.target.value)}
           >
-            <option value="ALL">All Actions</option>
-            <option value="ARTICLE_APPROVED">Approved Article</option>
-            <option value="ARTICLE_REJECTED">Rejected Article</option>
-            <option value="USER_SUSPENDED">Suspended User</option>
-            <option value="USER_ACTIVATED">Activated User</option>
-            <option value="USER_ROLE_CHANGED">Changed User Role</option>
-            <option value="REPORT_RESOLVED">Resolved Report</option>
-            <option value="REPORT_DISMISSED">Dismissed Report</option>
+            <option value="ALL">{t('ui.k047')}</option>
+            <option value="ARTICLE_APPROVED">{t('ui.k065')}</option>
+            <option value="ARTICLE_REJECTED">{t('ui.k330')}</option>
+            <option value="USER_SUSPENDED">{t('ui.k404')}</option>
+            <option value="USER_ACTIVATED">{t('ui.k034')}</option>
+            <option value="USER_ROLE_CHANGED">{t('ui.k109')}</option>
+            <option value="REPORT_RESOLVED">{t('ui.k349')}</option>
+            <option value="REPORT_DISMISSED">{t('ui.k147')}</option>
           </select>
         </div>
 
         {/* Target Entity Filter */}
         <div className="adm-filter-group">
-          <label htmlFor="filter-target-entity" className="adm-filter-label">Entity:</label>
+          <label htmlFor="filter-target-entity" className="adm-filter-label">{t('ui.k168')}</label>
           <select
             id="filter-target-entity"
             className="adm-select"
             value={targetEntityFilter}
             onChange={(e) => setTargetEntityFilter(e.target.value)}
           >
-            <option value="ALL">All Entities</option>
-            <option value="Article">Article</option>
-            <option value="User">User</option>
-            <option value="Report">Report</option>
-            <option value="ForumPost">Forum Post</option>
-            <option value="Comment">Comment</option>
+            <option value="ALL">{t('ui.k051')}</option>
+            <option value="Article">{t('ui.k067')}</option>
+            <option value="User">{t('ui.k436')}</option>
+            <option value="Report">{t('ui.k333')}</option>
+            <option value="ForumPost">{t('ui.k184')}</option>
+            <option value="Comment">{t('ui.k116')}</option>
           </select>
         </div>
 
         {/* Start Date */}
         <div className="adm-filter-group">
-          <label htmlFor="filter-start-date" className="adm-filter-label">From:</label>
+          <label htmlFor="filter-start-date" className="adm-filter-label">{t('ui.k186')}</label>
           <input
             id="filter-start-date"
             type="date"
             className="adm-select"
             value={startDateFilter}
             onChange={(e) => setStartDateFilter(e.target.value)}
-            aria-label="Filter from start date"
+            aria-label={t('ui.a024')}
           />
         </div>
 
         {/* End Date */}
         <div className="adm-filter-group">
-          <label htmlFor="filter-end-date" className="adm-filter-label">To:</label>
+          <label htmlFor="filter-end-date" className="adm-filter-label">{t('ui.k418')}</label>
           <input
             id="filter-end-date"
             type="date"
             className="adm-select"
             value={endDateFilter}
             onChange={(e) => setEndDateFilter(e.target.value)}
-            aria-label="Filter to end date"
+            aria-label={t('ui.a025')}
           />
         </div>
 
@@ -410,24 +409,24 @@ export default function AdminActivity() {
             type="text"
             className="adm-select"
             style={{ width: '100%' }}
-            placeholder="Target ID…"
+            placeholder={t('ui.a045')}
             value={targetIdFilter}
             onChange={(e) => setTargetIdFilter(e.target.value)}
-            aria-label="Filter by Target ID"
+            aria-label={t('ui.a022')}
           />
         </div>
 
         {/* Sort Order */}
         <div className="adm-filter-group">
-          <label htmlFor="sort-activity-order" className="adm-filter-label">Sort:</label>
+          <label htmlFor="sort-activity-order" className="adm-filter-label">{t('ui.k386')}</label>
           <select
             id="sort-activity-order"
             className="adm-select"
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
           >
-            <option value="desc">Newest First</option>
-            <option value="asc">Oldest First</option>
+            <option value="desc">{t('ui.k263')}</option>
+            <option value="asc">{t('ui.k283')}</option>
           </select>
         </div>
 
@@ -437,9 +436,7 @@ export default function AdminActivity() {
             type="button"
             className="button button-outline button-small adm-clear-filters-btn"
             onClick={handleClearFilters}
-          >
-            Reset Filters
-          </button>
+          >{t('ui.k342')}</button>
         )}
       </div>
 
@@ -464,7 +461,7 @@ export default function AdminActivity() {
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
             </div>
-            <h3 className="adm-empty-title">No Audit Actions Found</h3>
+            <h3 className="adm-empty-title">{t('ui.k266')}</h3>
             <p className="adm-empty-desc">
               {hasActiveFilters
                 ? 'No administrative actions match the selected filter criteria. Try resetting your filters.'
@@ -473,14 +470,14 @@ export default function AdminActivity() {
           </div>
         ) : (
           <div className="adm-table-wrapper">
-            <table className="adm-table" aria-label="Administrative audit log table">
+            <table className="adm-table" aria-label={t('ui.a004')}>
               <thead>
                 <tr>
-                  <th scope="col">Action Type</th>
-                  <th scope="col">Administrator</th>
-                  <th scope="col">Target Entity & ID</th>
-                  <th scope="col">Timestamp</th>
-                  <th scope="col" className="adm-text-right">Audit Details</th>
+                  <th scope="col">{t('ui.k029')}</th>
+                  <th scope="col">{t('ui.k043')}</th>
+                  <th scope="col">{t('ui.k411')}</th>
+                  <th scope="col">{t('ui.k417')}</th>
+                  <th scope="col" className="adm-text-right">{t('ui.k080')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -491,7 +488,7 @@ export default function AdminActivity() {
                     </td>
                     <td>
                       <div className="adm-author-info-cell">
-                        <strong className="adm-author-name">{item.admin?.name || 'Administrator'}</strong>
+                        <strong className="adm-author-name">{item.admin?.name || t('admin.userRoles.ADMIN')}</strong>
                         <span className="adm-author-email">{item.admin?.email || '—'}</span>
                       </div>
                     </td>
@@ -518,9 +515,7 @@ export default function AdminActivity() {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                           <circle cx="12" cy="12" r="3" />
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                        </svg>
-                        Inspect
-                      </button>
+                        </svg>{t('ui.k209')}</button>
                     </td>
                   </tr>
                 ))}
@@ -532,10 +527,8 @@ export default function AdminActivity() {
         {/* ── Pagination ────────────────────────────────────────────────── */}
         {!loading && pagination.total > 0 && (
           <div className="adm-pagination-bar">
-            <span className="adm-pagination-info">
-              Showing <strong>{startRecord}</strong> to <strong>{endRecord}</strong> of{' '}
-              <strong>{pagination.total}</strong> actions
-            </span>
+            <span className="adm-pagination-info">{t('ui.k381')}<strong>{startRecord}</strong>{' '}{t('ui.k491')}{' '}<strong>{endRecord}</strong>{' '}{t('ui.k486')}{' '}
+              <strong>{pagination.total}</strong>{t('ui.k473')}</span>
 
             <div className="adm-pagination-controls">
               <button
@@ -543,13 +536,10 @@ export default function AdminActivity() {
                 className="button button-outline button-small"
                 onClick={() => handlePageChange(pagination.page - 1)}
                 disabled={pagination.page <= 1}
-                aria-label="Previous page"
-              >
-                ← Previous
-              </button>
+                aria-label={t('ui.a028')}
+              >{t('ui.k501')}</button>
 
-              <span className="adm-page-indicator" aria-current="page">
-                Page {pagination.page} of {pagination.totalPages}
+              <span className="adm-page-indicator" aria-current="page">{t('ui.k289')}{pagination.page}{' '}{t('ui.k486')}{' '}{pagination.totalPages}
               </span>
 
               <button
@@ -557,10 +547,8 @@ export default function AdminActivity() {
                 className="button button-outline button-small"
                 onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={pagination.page >= pagination.totalPages}
-                aria-label="Next page"
-              >
-                Next →
-              </button>
+                aria-label={t('ui.a027')}
+              >{t('ui.k265')}</button>
             </div>
           </div>
         )}

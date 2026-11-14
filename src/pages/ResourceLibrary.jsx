@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -19,6 +20,7 @@ import { resourceService } from '../services/resourceService';
 import { categoryService } from '../services/categoryService';
 
 export default function ResourceLibrary() {
+  const { t } = useTranslation();
   const [resources, setResources] = useState([]);
   const [categories, setCategories] = useState([]);
   const [counts, setCounts] = useState({ ALL: 0, VIDEO: 0, PDF: 0, DATASET: 0, LINK: 0 });
@@ -60,23 +62,15 @@ export default function ResourceLibrary() {
       {/* Hero section */}
       <section className="resources-hero">
         <div className="resources-hero-content">
-          <span className="eyebrow light-eyebrow">
-            EDUCATIONAL MULTIMEDIA &bull; TECHNICAL GUIDELINES
-          </span>
-          <h1>
-            Water Conservation <em>Resource & Video Hub</em>
+          <span className="eyebrow light-eyebrow">{t('ui.k160')}</span>
+          <h1>{t('ui.k457')}{' '}<em>{t('ui.k350')}</em>
           </h1>
-          <p>
-            Explore verified technical manuals, engineering schematics, step-by-step video tutorials,
-            and hydrological datasets for sustainable water governance.
-          </p>
+          <p>{t('ui.k173')}</p>
           <div className="hero-buttons">
             <Link to="/articles/submit" className="button button-white">
-              <PlusCircle size={16} /> Contribute a Resource
-            </Link>
+              <PlusCircle size={16} />{t('ui.k128')}</Link>
             <Link to="/knowledge" className="button button-outline" style={{ background: '#ffffff20', color: '#fff', borderColor: '#ffffff40' }}>
-              <BookOpen size={16} /> Browse Wiki Articles
-            </Link>
+              <BookOpen size={16} />{t('ui.k097')}</Link>
           </div>
         </div>
 
@@ -84,7 +78,7 @@ export default function ResourceLibrary() {
           <Layers size={36} />
           <div className="badge-text">
             <strong>{counts.ALL || resources.length}</strong>
-            <span>Verified Toolkits</span>
+            <span>{t('ui.k444')}</span>
           </div>
         </div>
       </section>
@@ -95,7 +89,7 @@ export default function ResourceLibrary() {
           <Search size={18} className="search-icon" />
           <input
             type="text"
-            placeholder="Search manuals, videos, calculations, or guidelines..."
+            placeholder={t('ui.a041')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="resources-search-input"
@@ -112,9 +106,9 @@ export default function ResourceLibrary() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            aria-label="Filter by category"
+            aria-label={t('ui.a023')}
           >
-            <option value="">All Conservation Categories</option>
+            <option value="">{t('ui.k049')}</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.slug}>
                 {cat.name}
@@ -130,25 +124,25 @@ export default function ResourceLibrary() {
           className={`type-tab ${selectedType === 'ALL' ? 'active' : ''}`}
           onClick={() => setSelectedType('ALL')}
         >
-          <Layers size={15} /> All Media ({counts.ALL || 0})
+          <Layers size={15} />{' '}{t('ui.k052')}{counts.ALL || 0})
         </button>
         <button
           className={`type-tab ${selectedType === 'VIDEO' ? 'active' : ''}`}
           onClick={() => setSelectedType('VIDEO')}
         >
-          <Video size={15} /> Video Tutorials ({counts.VIDEO || 0})
+          <Video size={15} />{' '}{t('ui.k449')}{counts.VIDEO || 0})
         </button>
         <button
           className={`type-tab ${selectedType === 'PDF' ? 'active' : ''}`}
           onClick={() => setSelectedType('PDF')}
         >
-          <FileText size={15} /> Manuals & PDFs ({counts.PDF || 0})
+          <FileText size={15} />{' '}{t('ui.k246')}{counts.PDF || 0})
         </button>
         <button
           className={`type-tab ${selectedType === 'DATASET' ? 'active' : ''}`}
           onClick={() => setSelectedType('DATASET')}
         >
-          <Database size={15} /> Datasets & Sheets ({counts.DATASET || 0})
+          <Database size={15} />{' '}{t('ui.k139')}{counts.DATASET || 0})
         </button>
       </div>
 
@@ -156,13 +150,13 @@ export default function ResourceLibrary() {
       {loading ? (
         <div className="knowledge-loading">
           <Droplets size={28} className="spin-icon" />
-          <p>Loading educational resources...</p>
+          <p>{t('ui.k235')}</p>
         </div>
       ) : resources.length === 0 ? (
         <div className="knowledge-empty-state">
           <Layers size={48} className="empty-icon" />
-          <h3>No resources found</h3>
-          <p>Try switching the media type or resetting your search term.</p>
+          <h3>{t('ui.k277')}</h3>
+          <p>{t('ui.k428')}</p>
           <button
             className="button button-primary"
             onClick={() => {
@@ -170,9 +164,7 @@ export default function ResourceLibrary() {
               setSelectedCategory('');
               setSearchQuery('');
             }}
-          >
-            Reset Filters
-          </button>
+          >{t('ui.k342')}</button>
         </div>
       ) : (
         <div className="resource-cards-grid">
@@ -206,7 +198,7 @@ export default function ResourceLibrary() {
 
                   {res.article && (
                     <div className="resource-source-article">
-                      <span>Source Article:</span>
+                      <span>{t('ui.k387')}</span>
                       <Link to={`/articles/${res.article.slug || res.article.id}`}>
                         {res.article.title}
                       </Link>
@@ -219,8 +211,7 @@ export default function ResourceLibrary() {
                         className="button button-primary button-small"
                         onClick={() => setActiveVideo(res)}
                       >
-                        <Play size={14} /> Watch Video
-                      </button>
+                        <Play size={14} />{t('ui.k455')}</button>
                     ) : (
                       <a
                         href={res.url}
@@ -230,7 +221,7 @@ export default function ResourceLibrary() {
                         download={isPdf}
                       >
                         {isPdf ? <Download size={14} /> : <ExternalLink size={14} />}
-                        <span>{isPdf ? 'Download PDF' : 'Open Resource'}</span>
+                        <span>{isPdf ? t('article.download') : t('article.openResource')}</span>
                       </a>
                     )}
 
@@ -238,9 +229,7 @@ export default function ResourceLibrary() {
                       <Link
                         to={`/articles/${res.article.slug || res.article.id}`}
                         className="read-article-link"
-                      >
-                        Read Guide &rarr;
-                      </Link>
+                      >{t('ui.k318')}</Link>
                     )}
                   </div>
                 </div>
@@ -256,13 +245,13 @@ export default function ResourceLibrary() {
           <div className="video-modal" onClick={(e) => e.stopPropagation()}>
             <div className="video-modal-header">
               <div>
-                <span className="eyebrow">FIELD TUTORIAL &bull; VIDEO PLAYER</span>
+                <span className="eyebrow">{t('ui.k176')}</span>
                 <h3>{activeVideo.title}</h3>
               </div>
               <button
                 className="icon-button"
                 onClick={() => setActiveVideo(null)}
-                aria-label="Close video player"
+                aria-label={t('ui.a016')}
               >
                 <X size={20} />
               </button>
@@ -280,15 +269,14 @@ export default function ResourceLibrary() {
               ) : (
                 <div className="video-external-fallback">
                   <Video size={48} />
-                  <p>External video stream at:</p>
+                  <p>{t('ui.k175')}</p>
                   <code>{activeVideo.url}</code>
                   <a
                     href={activeVideo.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="button button-primary"
-                  >
-                    Launch Video in New Window <ExternalLink size={16} />
+                  >{t('ui.k228')}<ExternalLink size={16} />
                   </a>
                 </div>
               )}

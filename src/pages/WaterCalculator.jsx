@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
@@ -35,19 +36,10 @@ const CITY_RAINFALL = [
   { city: 'Pune', mm: 750 },
 ];
 
-const CROP_OPTIONS = [
-  { value: 'RICE_PADDY', label: 'Rice / Paddy (High ~1200mm)' },
-  { value: 'WHEAT', label: 'Wheat (Medium ~450mm)' },
-  { value: 'SUGARCANE', label: 'Sugarcane (High ~1800mm)' },
-  { value: 'COTTON', label: 'Cotton (Moderate ~700mm)' },
-  { value: 'MAIZE', label: 'Maize / Corn (~500mm)' },
-  { value: 'PULSES', label: 'Pulses / Legumes (Low ~350mm)' },
-  { value: 'VEGETABLES', label: 'Vegetables (~450mm)' },
-  { value: 'MILLETS', label: 'Millets / Bajra / Jowar (Low ~300mm)' },
-  { value: 'OTHER', label: 'Custom / Other Crop' },
-];
+const CROP_OPTIONS = ['RICE_PADDY', 'WHEAT', 'SUGARCANE', 'COTTON', 'MAIZE', 'PULSES', 'VEGETABLES', 'MILLETS', 'OTHER'];
 
 export default function WaterCalculator() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('AGRICULTURE');
 
@@ -142,12 +134,12 @@ export default function WaterCalculator() {
         ...payload,
       });
       setLastResult(res);
-      setSuccessNotice('Calculation completed and recorded in database!');
+      setSuccessNotice(t('calculator.completed'));
       if (activeTab === 'HISTORY') {
         fetchHistory(1);
       }
     } catch (err) {
-      setError(err.message || 'Calculation failed. Please verify your inputs.');
+      setError(t('calculator.failed'));
     } finally {
       setSubmitting(false);
     }
@@ -158,11 +150,9 @@ export default function WaterCalculator() {
       {/* ── Header Banner ──────────────────────────────────────────────── */}
       <div className="knowledge-hero" style={{ minHeight: '220px', marginBottom: '24px' }}>
         <div className="knowledge-hero-content">
-          <span className="eyebrow light-eyebrow">MODULE C: SCIENTIFIC DECISION SUPPORT</span>
-          <h1>Water Conservation <em>Calculator</em></h1>
-          <p>
-            Estimate irrigation demands, quantify drip technology water savings, calculate rooftop rainwater harvesting yields, and optimize household domestic water efficiency using verified empirical formulas.
-          </p>
+          <span className="eyebrow light-eyebrow">{t('ui.k243')}</span>
+          <h1>{t('ui.k457')}{' '}<em>{t('ui.k105')}</em></h1>
+          <p>{t('ui.k169')}</p>
         </div>
         <div className="knowledge-hero-stats" style={{ display: 'none' }}></div>
       </div>
@@ -172,9 +162,7 @@ export default function WaterCalculator() {
         <div className="calc-guest-banner" role="status">
           <Info size={18} className="calc-guest-icon" />
           <div className="calc-guest-text">
-            <strong>Guest Mode Active:</strong> You can calculate and save live estimations freely.
-            <NavLink to="/login" className="calc-guest-link"> Sign in</NavLink> to access your personal historical calculations and track long-term water savings.
-          </div>
+            <strong>{t('ui.k194')}</strong>{t('ui.k468')}<NavLink to="/login" className="calc-guest-link">{' '}{t('ui.k383')}</NavLink>{t('ui.k492')}</div>
         </div>
       )}
 
@@ -196,14 +184,14 @@ export default function WaterCalculator() {
       )}
 
       {/* ── Calculator Tabs ────────────────────────────────────────────── */}
-      <nav className="calc-tab-nav" aria-label="Calculator Categories">
+      <nav className="calc-tab-nav" aria-label={t('ui.a009')}>
         <button
           type="button"
           className={`calc-tab-btn ${activeTab === 'AGRICULTURE' ? 'active' : ''}`}
           onClick={() => { setActiveTab('AGRICULTURE'); setError(null); }}
         >
           <Sprout size={16} />
-          <span>Agriculture</span>
+          <span>{t('ui.k044')}</span>
         </button>
 
         <button
@@ -212,7 +200,7 @@ export default function WaterCalculator() {
           onClick={() => { setActiveTab('DRIP_IRRIGATION'); setError(null); }}
         >
           <Waves size={16} />
-          <span>Drip Irrigation</span>
+          <span>{t('ui.k157')}</span>
         </button>
 
         <button
@@ -221,7 +209,7 @@ export default function WaterCalculator() {
           onClick={() => { setActiveTab('RAINWATER_HARVESTING'); setError(null); }}
         >
           <CloudRain size={16} />
-          <span>Rainwater Harvest</span>
+          <span>{t('ui.k313')}</span>
         </button>
 
         <button
@@ -230,7 +218,7 @@ export default function WaterCalculator() {
           onClick={() => { setActiveTab('HOUSEHOLD'); setError(null); }}
         >
           <Home size={16} />
-          <span>Household Domestic</span>
+          <span>{t('ui.k202')}</span>
         </button>
 
         <button
@@ -239,7 +227,7 @@ export default function WaterCalculator() {
           onClick={() => { setActiveTab('HISTORY'); setError(null); }}
         >
           <History size={16} />
-          <span>Calculation History</span>
+          <span>{t('ui.k104')}</span>
         </button>
       </nav>
 
@@ -248,8 +236,8 @@ export default function WaterCalculator() {
         <div className="calc-card-grid">
           <div className="calc-form-card">
             <div className="calc-card-head">
-              <h2>🌾 Agriculture Water Requirement Calculator</h2>
-              <p>Estimate net and gross seasonal crop water requirements and identify savings by upgrading from traditional flood methods.</p>
+              <h2>{t('ui.k504')}</h2>
+              <p>{t('ui.k170')}</p>
             </div>
 
             <form
@@ -268,7 +256,7 @@ export default function WaterCalculator() {
             >
               <div className="calc-field-row">
                 <div className="calc-field">
-                  <label htmlFor="agri-area">Land Area</label>
+                  <label htmlFor="agri-area">{t('ui.k224')}</label>
                   <input
                     id="agri-area"
                     type="number"
@@ -281,40 +269,40 @@ export default function WaterCalculator() {
                   />
                 </div>
                 <div className="calc-field">
-                  <label htmlFor="agri-unit">Area Unit</label>
+                  <label htmlFor="agri-unit">{t('ui.k066')}</label>
                   <select
                     id="agri-unit"
                     value={agriForm.unit}
                     onChange={(e) => setAgriForm({ ...agriForm, unit: e.target.value })}
                   >
-                    <option value="ACRES">Acres (1 acre = 4,047 m²)</option>
-                    <option value="HECTARES">Hectares (1 ha = 10,000 m²)</option>
+                    <option value="ACRES">{t('ui.k025')}</option>
+                    <option value="HECTARES">{t('ui.k200')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="calc-field">
-                <label htmlFor="agri-crop">Crop Type</label>
+                <label htmlFor="agri-crop">{t('ui.k131')}</label>
                 <select
                   id="agri-crop"
                   value={agriForm.cropType}
                   onChange={(e) => setAgriForm({ ...agriForm, cropType: e.target.value })}
                 >
-                  {CROP_OPTIONS.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
+                {CROP_OPTIONS.map((crop) => (
+                  <option key={crop} value={crop}>{t(`calculator.crops.${crop}`)}</option>
                   ))}
                 </select>
               </div>
 
               {agriForm.cropType === 'OTHER' && (
                 <div className="calc-field">
-                  <label htmlFor="agri-depth">Custom Water Depth (mm per season)</label>
+                  <label htmlFor="agri-depth">{t('ui.k134')}</label>
                   <input
                     id="agri-depth"
                     type="number"
                     min="50"
                     max="3000"
-                    placeholder="e.g. 500"
+                    placeholder={t('ui.a049')}
                     value={agriForm.customWaterDepth}
                     onChange={(e) => setAgriForm({ ...agriForm, customWaterDepth: e.target.value })}
                   />
@@ -323,28 +311,28 @@ export default function WaterCalculator() {
 
               <div className="calc-field-row">
                 <div className="calc-field">
-                  <label htmlFor="agri-method">Current Irrigation Method</label>
+                  <label htmlFor="agri-method">{t('ui.k133')}</label>
                   <select
                     id="agri-method"
                     value={agriForm.irrigationMethod}
                     onChange={(e) => setAgriForm({ ...agriForm, irrigationMethod: e.target.value })}
                   >
-                    <option value="FLOOD">Surface / Flood (45% efficiency)</option>
-                    <option value="SPRINKLER">Sprinkler System (75% efficiency)</option>
-                    <option value="DRIP">Drip / Micro-Irrigation (90% efficiency)</option>
+                    <option value="FLOOD">{t('ui.k400')}</option>
+                    <option value="SPRINKLER">{t('ui.k389')}</option>
+                    <option value="DRIP">{t('ui.k155')}</option>
                   </select>
                 </div>
 
                 <div className="calc-field">
-                  <label htmlFor="agri-seasons">Seasons Per Year</label>
+                  <label htmlFor="agri-seasons">{t('ui.k378')}</label>
                   <select
                     id="agri-seasons"
                     value={agriForm.seasonsPerYear}
                     onChange={(e) => setAgriForm({ ...agriForm, seasonsPerYear: e.target.value })}
                   >
-                    <option value="1">1 Cropping Season / Year</option>
-                    <option value="2">2 Cropping Seasons / Year</option>
-                    <option value="3">3 Cropping Seasons / Year</option>
+                    <option value="1">{t('ui.k012')}</option>
+                    <option value="2">{t('ui.k016')}</option>
+                    <option value="3">{t('ui.k018')}</option>
                   </select>
                 </div>
               </div>
@@ -354,7 +342,7 @@ export default function WaterCalculator() {
                 className="button button-primary button-wide"
                 disabled={submitting}
               >
-                {submitting ? 'Calculating…' : 'Calculate & Record Water Usage'}
+                {submitting ? t('calculator.calculating') : t('calculator.calculateAgriculture')}
               </button>
             </form>
           </div>
@@ -364,44 +352,41 @@ export default function WaterCalculator() {
             {lastResult && lastResult.calculationType === 'AGRICULTURE' ? (
               <div className="calc-result-body">
                 <div className="calc-result-header">
-                  <span className="adm-badge adm-badge-active">Estimation Ready</span>
-                  <h3>Agriculture Demand Analysis</h3>
+                  <span className="adm-badge adm-badge-active">{t('ui.k172')}</span>
+                  <h3>{t('ui.k045')}</h3>
                   <p className="calc-result-sub">
-                    {lastResult.inputParams?.area} {lastResult.inputParams?.unit?.toLowerCase()} of {lastResult.inputParams?.cropLabel || lastResult.inputParams?.cropType} using {lastResult.inputParams?.irrigationMethod} irrigation.
-                  </p>
+                    {lastResult.inputParams?.area} {lastResult.inputParams?.unit?.toLowerCase()}{' '}{t('ui.k486')}{' '}{lastResult.inputParams?.cropLabel || lastResult.inputParams?.cropType}{' '}{t('ui.k496')}{' '}{lastResult.inputParams?.irrigationMethod}{t('ui.k478')}</p>
                 </div>
 
                 <div className="calc-metrics-grid">
                   <div className="calc-metric-box">
-                    <span className="calc-metric-title">Gross Seasonal Requirement</span>
+                    <span className="calc-metric-title">{t('ui.k193')}</span>
                     <strong className="calc-metric-number">
-                      {formatIN(lastResult.resultMetrics?.grossWaterRequirementLiters)} <span className="calc-unit">L</span>
+                      {formatIN(lastResult.resultMetrics?.grossWaterRequirementLiters)} <span className="calc-unit">{t('ui.k215')}</span>
                     </strong>
-                    <span className="calc-metric-sub">Accounting for field application losses</span>
+                    <span className="calc-metric-sub">{t('ui.k023')}</span>
                   </div>
 
                   <div className="calc-metric-box">
-                    <span className="calc-metric-title">Daily Water Requirement</span>
+                    <span className="calc-metric-title">{t('ui.k137')}</span>
                     <strong className="calc-metric-number">
-                      {formatIN(lastResult.resultMetrics?.dailyRequirementLiters)} <span className="calc-unit">L/day</span>
+                      {formatIN(lastResult.resultMetrics?.dailyRequirementLiters)} <span className="calc-unit">{t('ui.k217')}</span>
                     </strong>
-                    <span className="calc-metric-sub">Over {lastResult.resultMetrics?.durationDays} days duration</span>
+                    <span className="calc-metric-sub">{t('ui.k285')}{' '}{lastResult.resultMetrics?.durationDays}{' '}{t('ui.k476')}</span>
                   </div>
                 </div>
 
                 {/* Savings Potential Comparison */}
                 <div className="calc-savings-box">
-                  <h4>💡 Water Savings Potential via Micro-Irrigation</h4>
+                  <h4>{t('ui.k507')}</h4>
                   <div className="calc-savings-row">
-                    <span>Upgrade to Micro-Drip (90% eff):</span>
-                    <strong className="calc-highlight-green">
-                      Save {formatIN(lastResult.resultMetrics?.potentialDripSavingsLiters)} L ({lastResult.resultMetrics?.dripSavingsPercent}%)
+                    <span>{t('ui.k434')}</span>
+                    <strong className="calc-highlight-green">{t('ui.k369')}{formatIN(lastResult.resultMetrics?.potentialDripSavingsLiters)}{' '}{t('ui.k216')}{lastResult.resultMetrics?.dripSavingsPercent}%)
                     </strong>
                   </div>
                   <div className="calc-savings-row">
-                    <span>Upgrade to Sprinkler (75% eff):</span>
-                    <strong className="calc-highlight-blue">
-                      Save {formatIN(lastResult.resultMetrics?.potentialSprinklerSavingsLiters)} L ({lastResult.resultMetrics?.sprinklerSavingsPercent}%)
+                    <span>{t('ui.k435')}</span>
+                    <strong className="calc-highlight-blue">{t('ui.k369')}{formatIN(lastResult.resultMetrics?.potentialSprinklerSavingsLiters)}{' '}{t('ui.k216')}{lastResult.resultMetrics?.sprinklerSavingsPercent}%)
                     </strong>
                   </div>
                 </div>
@@ -410,11 +395,9 @@ export default function WaterCalculator() {
                 <div className="calc-assumptions-box">
                   <div className="calc-assumptions-title">
                     <HelpCircle size={14} />
-                    <span>Scientific Assumptions Disclosed</span>
+                    <span>{t('ui.k374')}</span>
                   </div>
-                  <p>
-                    Net crop water depth: <strong>{lastResult.resultMetrics?.assumptionsDisclosed?.cropWaterDepthMm} mm</strong>.
-                    Method application efficiency: <strong>{lastResult.resultMetrics?.assumptionsDisclosed?.methodEfficiencyPercent}%</strong>.
+                  <p>{t('ui.k261')}<strong>{lastResult.resultMetrics?.assumptionsDisclosed?.cropWaterDepthMm}{' '}{t('ui.k482')}</strong>{t('ui.k011')}<strong>{lastResult.resultMetrics?.assumptionsDisclosed?.methodEfficiencyPercent}%</strong>.
                     {lastResult.resultMetrics?.assumptionsDisclosed?.note}
                   </p>
                 </div>
@@ -422,8 +405,8 @@ export default function WaterCalculator() {
             ) : (
               <div className="calc-result-placeholder">
                 <Sprout size={48} className="calc-ph-icon" />
-                <h3>Enter field dimensions to calculate</h3>
-                <p>Provide your crop acreage and current irrigation method to estimate crop water requirements and potential conservation benefits.</p>
+                <h3>{t('ui.k167')}</h3>
+                <p>{t('ui.k305')}</p>
               </div>
             )}
           </div>
@@ -435,8 +418,8 @@ export default function WaterCalculator() {
         <div className="calc-card-grid">
           <div className="calc-form-card">
             <div className="calc-card-head">
-              <h2>💧 Drip Irrigation Savings Calculator</h2>
-              <p>Quantify precise water conservation and percentage reduction achieved by shifting from conventional surface flooding to micro-drip emitters.</p>
+              <h2>{t('ui.k508')}</h2>
+              <p>{t('ui.k311')}</p>
             </div>
 
             <form
@@ -455,7 +438,7 @@ export default function WaterCalculator() {
             >
               <div className="calc-field-row">
                 <div className="calc-field">
-                  <label htmlFor="drip-area">Land Area</label>
+                  <label htmlFor="drip-area">{t('ui.k224')}</label>
                   <input
                     id="drip-area"
                     type="number"
@@ -468,33 +451,33 @@ export default function WaterCalculator() {
                   />
                 </div>
                 <div className="calc-field">
-                  <label htmlFor="drip-unit">Unit</label>
+                  <label htmlFor="drip-unit">{t('ui.k432')}</label>
                   <select
                     id="drip-unit"
                     value={dripForm.unit}
                     onChange={(e) => setDripForm({ ...dripForm, unit: e.target.value })}
                   >
-                    <option value="ACRES">Acres</option>
-                    <option value="HECTARES">Hectares</option>
+                    <option value="ACRES">{t('ui.k024')}</option>
+                    <option value="HECTARES">{t('ui.k199')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="calc-field">
-                <label htmlFor="drip-cur-method">Current Baseline Irrigation Method</label>
+                <label htmlFor="drip-cur-method">{t('ui.k132')}</label>
                 <select
                   id="drip-cur-method"
                   value={dripForm.currentMethod}
                   onChange={(e) => setDripForm({ ...dripForm, currentMethod: e.target.value })}
                 >
-                  <option value="FLOOD">Surface Flood Irrigation (~45% efficiency)</option>
-                  <option value="SPRINKLER">Overhead Sprinklers (~75% efficiency)</option>
+                  <option value="FLOOD">{t('ui.k401')}</option>
+                  <option value="SPRINKLER">{t('ui.k286')}</option>
                 </select>
               </div>
 
               <div className="calc-field-row">
                 <div className="calc-field">
-                  <label htmlFor="drip-eff">Target Drip Efficiency (%)</label>
+                  <label htmlFor="drip-eff">{t('ui.k409')}</label>
                   <input
                     id="drip-eff"
                     type="number"
@@ -506,27 +489,25 @@ export default function WaterCalculator() {
                   />
                 </div>
                 <div className="calc-field">
-                  <label htmlFor="drip-seasons">Seasons Per Year</label>
+                  <label htmlFor="drip-seasons">{t('ui.k378')}</label>
                   <select
                     id="drip-seasons"
                     value={dripForm.seasonsPerYear}
                     onChange={(e) => setDripForm({ ...dripForm, seasonsPerYear: e.target.value })}
                   >
-                    <option value="1">1 Season</option>
-                    <option value="2">2 Seasons (Kharif + Rabi)</option>
-                    <option value="3">3 Seasons (Continuous cropping)</option>
+                    <option value="1">{t('ui.k013')}</option>
+                    <option value="2">{t('ui.k017')}</option>
+                    <option value="3">{t('ui.k019')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="calc-field">
-                <label htmlFor="drip-cur-usage">
-                  Known Current Usage (Litres/season, optional)
-                </label>
+                <label htmlFor="drip-cur-usage">{t('ui.k214')}</label>
                 <input
                   id="drip-cur-usage"
                   type="number"
-                  placeholder="Leave empty to auto-calculate from standard reference"
+                  placeholder={t('ui.a026')}
                   value={dripForm.currentWaterUsageLiters}
                   onChange={(e) => setDripForm({ ...dripForm, currentWaterUsageLiters: e.target.value })}
                 />
@@ -537,7 +518,7 @@ export default function WaterCalculator() {
                 className="button button-primary button-wide"
                 disabled={submitting}
               >
-                {submitting ? 'Calculating…' : 'Calculate Drip Water Savings'}
+                {submitting ? t('calculator.calculating') : t('calculator.calculateDrip')}
               </button>
             </form>
           </div>
@@ -547,46 +528,45 @@ export default function WaterCalculator() {
             {lastResult && lastResult.calculationType === 'DRIP_IRRIGATION' ? (
               <div className="calc-result-body">
                 <div className="calc-result-header">
-                  <span className="adm-badge adm-badge-active">Savings Projected</span>
-                  <h3>Drip Conversion Assessment</h3>
-                  <p className="calc-result-sub">
-                    Transitioning from {lastResult.resultMetrics?.currentMethod} ({lastResult.resultMetrics?.currentEfficiencyPercent}%) to Micro-Drip ({lastResult.resultMetrics?.dripEfficiencyPercent}%).
+                  <span className="adm-badge adm-badge-active">{t('ui.k373')}</span>
+                  <h3>{t('ui.k156')}</h3>
+                  <p className="calc-result-sub">{t('ui.k427')}{lastResult.resultMetrics?.currentMethod} ({lastResult.resultMetrics?.currentEfficiencyPercent}{t('ui.k006')}{lastResult.resultMetrics?.dripEfficiencyPercent}%).
                   </p>
                 </div>
 
                 <div className="calc-metrics-grid">
                   <div className="calc-metric-box">
-                    <span className="calc-metric-title">Seasonal Water Saved</span>
+                    <span className="calc-metric-title">{t('ui.k377')}</span>
                     <strong className="calc-metric-number calc-highlight-green">
-                      {formatIN(lastResult.resultMetrics?.waterSavedLiters)} <span className="calc-unit">L</span>
+                      {formatIN(lastResult.resultMetrics?.waterSavedLiters)} <span className="calc-unit">{t('ui.k215')}</span>
                     </strong>
-                    <span className="calc-metric-sub">{lastResult.resultMetrics?.savingsPercent}% water reduction</span>
+                    <span className="calc-metric-sub">{lastResult.resultMetrics?.savingsPercent}{t('ui.k005')}</span>
                   </div>
 
                   <div className="calc-metric-box">
-                    <span className="calc-metric-title">Annualized Water Saved</span>
+                    <span className="calc-metric-title">{t('ui.k061')}</span>
                     <strong className="calc-metric-number">
-                      {formatIN(lastResult.resultMetrics?.annualWaterSavedLiters)} <span className="calc-unit">L/yr</span>
+                      {formatIN(lastResult.resultMetrics?.annualWaterSavedLiters)} <span className="calc-unit">{t('ui.k222')}</span>
                     </strong>
-                    <span className="calc-metric-sub">Across {lastResult.inputParams?.seasonsPerYear} annual seasons</span>
+                    <span className="calc-metric-sub">{t('ui.k026')}{' '}{lastResult.inputParams?.seasonsPerYear}{' '}{t('ui.k474')}</span>
                   </div>
                 </div>
 
                 {/* Progress Comparison Bar */}
                 <div className="calc-savings-box">
-                  <h4>Water Consumption Comparison</h4>
+                  <h4>{t('ui.k458')}</h4>
                   <div className="calc-progress-wrap">
                     <div className="calc-progress-row">
-                      <span>Baseline ({lastResult.resultMetrics?.currentMethod}):</span>
-                      <strong>{formatIN(lastResult.resultMetrics?.currentConsumptionLiters)} L</strong>
+                      <span>{t('ui.k092')}{lastResult.resultMetrics?.currentMethod}):</span>
+                      <strong>{formatIN(lastResult.resultMetrics?.currentConsumptionLiters)}{' '}{t('ui.k215')}</strong>
                     </div>
                     <div className="calc-bar-track">
                       <div className="calc-bar-fill calc-bar-red" style={{ width: '100%' }} />
                     </div>
 
                     <div className="calc-progress-row" style={{ marginTop: '10px' }}>
-                      <span>With Drip Irrigation:</span>
-                      <strong>{formatIN(lastResult.resultMetrics?.dripConsumptionLiters)} L</strong>
+                      <span>{t('ui.k462')}</span>
+                      <strong>{formatIN(lastResult.resultMetrics?.dripConsumptionLiters)}{' '}{t('ui.k215')}</strong>
                     </div>
                     <div className="calc-bar-track">
                       <div
@@ -600,7 +580,7 @@ export default function WaterCalculator() {
                 <div className="calc-assumptions-box">
                   <div className="calc-assumptions-title">
                     <HelpCircle size={14} />
-                    <span>Calculation Disclosures</span>
+                    <span>{t('ui.k103')}</span>
                   </div>
                   <p>{lastResult.resultMetrics?.assumptionsDisclosed?.note}</p>
                 </div>
@@ -608,8 +588,8 @@ export default function WaterCalculator() {
             ) : (
               <div className="calc-result-placeholder">
                 <Waves size={48} className="calc-ph-icon" />
-                <h3>Compute Micro-Irrigation Savings</h3>
-                <p>Compare your current surface application volume against high-efficiency drip systems to see conservation gains.</p>
+                <h3>{t('ui.k121')}</h3>
+                <p>{t('ui.k120')}</p>
               </div>
             )}
           </div>
@@ -621,8 +601,8 @@ export default function WaterCalculator() {
         <div className="calc-card-grid">
           <div className="calc-form-card">
             <div className="calc-card-head">
-              <h2>🌧️ Rainwater Harvesting Calculator</h2>
-              <p>Calculate your annual rooftop rainwater yield and recommended storage tank dimensions based on local rainfall patterns.</p>
+              <h2>{t('ui.k503')}</h2>
+              <p>{t('ui.k101')}</p>
             </div>
 
             <form
@@ -637,7 +617,7 @@ export default function WaterCalculator() {
               className="calc-form"
             >
               <div className="calc-field">
-                <label htmlFor="rwh-roof">Rooftop Catchment Area (m²)</label>
+                <label htmlFor="rwh-roof">{t('ui.k365')}</label>
                 <input
                   id="rwh-roof"
                   type="number"
@@ -647,11 +627,11 @@ export default function WaterCalculator() {
                   value={rwhForm.roofAreaSqM}
                   onChange={(e) => setRwhForm({ ...rwhForm, roofAreaSqM: e.target.value })}
                 />
-                <span className="calc-field-hint">e.g. 100 m² is typical for a 1,000 sq.ft residential roof.</span>
+                <span className="calc-field-hint">{t('ui.k477')}</span>
               </div>
 
               <div className="calc-field">
-                <label htmlFor="rwh-rain">Annual Rainfall (mm)</label>
+                <label htmlFor="rwh-rain">{t('ui.k059')}</label>
                 <input
                   id="rwh-rain"
                   type="number"
@@ -665,7 +645,7 @@ export default function WaterCalculator() {
 
               {/* Quick City Presets */}
               <div className="calc-presets">
-                <span className="calc-presets-label">Indian Regional Rainfall Presets:</span>
+                <span className="calc-presets-label">{t('ui.k206')}</span>
                 <div className="calc-preset-chips">
                   {CITY_RAINFALL.map((c) => (
                     <button
@@ -674,14 +654,13 @@ export default function WaterCalculator() {
                       className="calc-chip"
                       onClick={() => setRwhForm({ ...rwhForm, annualRainfallMm: String(c.mm) })}
                     >
-                      {c.city} ({c.mm}mm)
-                    </button>
+                      {c.city} ({c.mm}{t('ui.k484')}</button>
                   ))}
                 </div>
               </div>
 
               <div className="calc-field">
-                <label htmlFor="rwh-eff">Runoff / Collection Efficiency (%)</label>
+                <label htmlFor="rwh-eff">{t('ui.k367')}</label>
                 <input
                   id="rwh-eff"
                   type="number"
@@ -691,7 +670,7 @@ export default function WaterCalculator() {
                   value={rwhForm.efficiencyPercent}
                   onChange={(e) => setRwhForm({ ...rwhForm, efficiencyPercent: e.target.value })}
                 />
-                <span className="calc-field-hint">Standard efficiency is 80% (accounting for first-flush rejection and gutter adhesion).</span>
+                <span className="calc-field-hint">{t('ui.k390')}</span>
               </div>
 
               <button
@@ -699,7 +678,7 @@ export default function WaterCalculator() {
                 className="button button-primary button-wide"
                 disabled={submitting}
               >
-                {submitting ? 'Calculating…' : 'Calculate Rainwater Potential'}
+                {submitting ? t('calculator.calculating') : t('calculator.calculateRainwater')}
               </button>
             </form>
           </div>
@@ -709,60 +688,54 @@ export default function WaterCalculator() {
             {lastResult && lastResult.calculationType === 'RAINWATER_HARVESTING' ? (
               <div className="calc-result-body">
                 <div className="calc-result-header">
-                  <span className="adm-badge adm-badge-active">Harvest Potential Calculated</span>
-                  <h3>Rooftop Rainwater Harvest</h3>
+                  <span className="adm-badge adm-badge-active">{t('ui.k197')}</span>
+                  <h3>{t('ui.k366')}</h3>
                   <p className="calc-result-sub">
-                    {lastResult.inputParams?.roofAreaSqM} m² roof receiving {lastResult.inputParams?.annualRainfallMm} mm annual rainfall at {lastResult.inputParams?.efficiencyPercent}% collection efficiency.
-                  </p>
+                    {lastResult.inputParams?.roofAreaSqM}{' '}{t('ui.k485')}{' '}{lastResult.inputParams?.annualRainfallMm}{' '}{t('ui.k483')}{' '}{lastResult.inputParams?.efficiencyPercent}{t('ui.k003')}</p>
                 </div>
 
                 <div className="calc-metrics-grid">
                   <div className="calc-metric-box">
-                    <span className="calc-metric-title">Annual Harvest Volume</span>
+                    <span className="calc-metric-title">{t('ui.k058')}</span>
                     <strong className="calc-metric-number calc-highlight-blue">
-                      {formatIN(lastResult.resultMetrics?.annualHarvestedLiters)} <span className="calc-unit">Litres</span>
+                      {formatIN(lastResult.resultMetrics?.annualHarvestedLiters)} <span className="calc-unit">{t('ui.k231')}</span>
                     </strong>
-                    <span className="calc-metric-sub">≈ {formatIN(lastResult.resultMetrics?.annualHarvestedLiters / 1000)} kL / m³ per year</span>
+                    <span className="calc-metric-sub">≈ {formatIN(lastResult.resultMetrics?.annualHarvestedLiters / 1000)}{' '}{t('ui.k480')}</span>
                   </div>
 
                   <div className="calc-metric-box">
-                    <span className="calc-metric-title">Monthly Average</span>
+                    <span className="calc-metric-title">{t('ui.k254')}</span>
                     <strong className="calc-metric-number">
-                      {formatIN(lastResult.resultMetrics?.monthlyAverageLiters)} <span className="calc-unit">L/mo</span>
+                      {formatIN(lastResult.resultMetrics?.monthlyAverageLiters)} <span className="calc-unit">{t('ui.k220')}</span>
                     </strong>
-                    <span className="calc-metric-sub">{formatIN(lastResult.resultMetrics?.dailyAverageLiters)} L/day annualized</span>
+                    <span className="calc-metric-sub">{formatIN(lastResult.resultMetrics?.dailyAverageLiters)}{' '}{t('ui.k219')}</span>
                   </div>
                 </div>
 
                 <div className="calc-savings-box">
-                  <h4>🏗️ Recommended Storage Sizing</h4>
+                  <h4>{t('ui.k505')}</h4>
                   <div className="calc-savings-row">
-                    <span>Suggested Storage Tank Capacity:</span>
+                    <span>{t('ui.k397')}</span>
                     <strong className="calc-highlight-green">
-                      {formatIN(lastResult.resultMetrics?.recommendedTankCapacityLiters)} Litres
-                    </strong>
+                      {formatIN(lastResult.resultMetrics?.recommendedTankCapacityLiters)}{t('ui.k231')}</strong>
                   </div>
-                  <p style={{ margin: '8px 0 0', fontSize: '11px', color: '#5b7164' }}>
-                    Sized to capture peak monsoon showers without immediate overflow while providing a reliable dry-period buffer.
-                  </p>
+                  <p style={{ margin: '8px 0 0', fontSize: '11px', color: '#5b7164' }}>{t('ui.k385')}</p>
                 </div>
 
                 <div className="calc-assumptions-box">
                   <div className="calc-assumptions-title">
                     <HelpCircle size={14} />
-                    <span>Scientific Formula</span>
+                    <span>{t('ui.k375')}</span>
                   </div>
                   <p>
-                    <strong>Harvest (L) = Roof Area (m²) × Rainfall (mm) × Runoff Efficiency</strong><br />
-                    1 mm of rain falling on 1 m² of roof produces exactly 1 Litre of water before runoff absorption.
-                  </p>
+                    <strong>{t('ui.k196')}</strong><br />{t('ui.k014')}</p>
                 </div>
               </div>
             ) : (
               <div className="calc-result-placeholder">
                 <CloudRain size={48} className="calc-ph-icon" />
-                <h3>Calculate Rooftop Rainwater Harvest</h3>
-                <p>Input your roof catchment area and average annual rainfall to calculate total collectible rainwater.</p>
+                <h3>{t('ui.k100')}</h3>
+                <p>{t('ui.k208')}</p>
               </div>
             )}
           </div>
@@ -774,8 +747,8 @@ export default function WaterCalculator() {
         <div className="calc-card-grid">
           <div className="calc-form-card">
             <div className="calc-card-head">
-              <h2>🏠 Household Water Consumption Calculator</h2>
-              <p>Audit your family's daily domestic consumption and observe how simple conservation fixtures save thousands of litres annually.</p>
+              <h2>{t('ui.k506')}</h2>
+              <p>{t('ui.k084')}</p>
             </div>
 
             <form
@@ -799,7 +772,7 @@ export default function WaterCalculator() {
               className="calc-form"
             >
               <div className="calc-field">
-                <label htmlFor="house-members">Number of Household Members</label>
+                <label htmlFor="house-members">{t('ui.k282')}</label>
                 <input
                   id="house-members"
                   type="number"
@@ -813,7 +786,7 @@ export default function WaterCalculator() {
 
               <div className="calc-field-row">
                 <div className="calc-field">
-                  <label htmlFor="house-bath">Bathing (L/person/day)</label>
+                  <label htmlFor="house-bath">{t('ui.k093')}</label>
                   <input
                     id="house-bath"
                     type="number"
@@ -825,7 +798,7 @@ export default function WaterCalculator() {
                   />
                 </div>
                 <div className="calc-field">
-                  <label htmlFor="house-toilet">Toilet Flushing (L/person/day)</label>
+                  <label htmlFor="house-toilet">{t('ui.k419')}</label>
                   <input
                     id="house-toilet"
                     type="number"
@@ -840,7 +813,7 @@ export default function WaterCalculator() {
 
               <div className="calc-field-row">
                 <div className="calc-field">
-                  <label htmlFor="house-laundry">Laundry (L/household/day)</label>
+                  <label htmlFor="house-laundry">{t('ui.k229')}</label>
                   <input
                     id="house-laundry"
                     type="number"
@@ -852,7 +825,7 @@ export default function WaterCalculator() {
                   />
                 </div>
                 <div className="calc-field">
-                  <label htmlFor="house-kitchen">Kitchen & Cooking (L/day)</label>
+                  <label htmlFor="house-kitchen">{t('ui.k212')}</label>
                   <input
                     id="house-kitchen"
                     type="number"
@@ -867,7 +840,7 @@ export default function WaterCalculator() {
 
               {/* Conservation Measures Checklist */}
               <div className="calc-checkbox-section">
-                <span className="calc-checkbox-title">Select Conservation Measures to Apply:</span>
+                <span className="calc-checkbox-title">{t('ui.k379')}</span>
 
                 <label className="calc-checkbox-item">
                   <input
@@ -875,7 +848,7 @@ export default function WaterCalculator() {
                     checked={houseForm.lowFlowShowerheads}
                     onChange={(e) => setHouseForm({ ...houseForm, lowFlowShowerheads: e.target.checked })}
                   />
-                  <span>Low-flow aerated showerheads (~35% bathing reduction)</span>
+                  <span>{t('ui.k240')}</span>
                 </label>
 
                 <label className="calc-checkbox-item">
@@ -884,7 +857,7 @@ export default function WaterCalculator() {
                     checked={houseForm.dualFlushToilets}
                     onChange={(e) => setHouseForm({ ...houseForm, dualFlushToilets: e.target.checked })}
                   />
-                  <span>Dual-flush toilet cisterns (~40% flush reduction)</span>
+                  <span>{t('ui.k158')}</span>
                 </label>
 
                 <label className="calc-checkbox-item">
@@ -893,7 +866,7 @@ export default function WaterCalculator() {
                     checked={houseForm.aeratedTaps}
                     onChange={(e) => setHouseForm({ ...houseForm, aeratedTaps: e.target.checked })}
                   />
-                  <span>Tap aerators in washbasins & kitchen (~25% tap reduction)</span>
+                  <span>{t('ui.k407')}</span>
                 </label>
 
                 <label className="calc-checkbox-item">
@@ -902,7 +875,7 @@ export default function WaterCalculator() {
                     checked={houseForm.greywaterReuse}
                     onChange={(e) => setHouseForm({ ...houseForm, greywaterReuse: e.target.checked })}
                   />
-                  <span>Greywater recycling for toilet & garden (~50% rinse reuse)</span>
+                  <span>{t('ui.k192')}</span>
                 </label>
               </div>
 
@@ -911,7 +884,7 @@ export default function WaterCalculator() {
                 className="button button-primary button-wide"
                 disabled={submitting}
               >
-                {submitting ? 'Calculating…' : 'Calculate Domestic Water Footprint'}
+                {submitting ? t('calculator.calculating') : t('calculator.calculateHousehold')}
               </button>
             </form>
           </div>
@@ -921,53 +894,50 @@ export default function WaterCalculator() {
             {lastResult && lastResult.calculationType === 'HOUSEHOLD' ? (
               <div className="calc-result-body">
                 <div className="calc-result-header">
-                  <span className="adm-badge adm-badge-active">Footprint Audited</span>
-                  <h3>Domestic Consumption Analysis</h3>
-                  <p className="calc-result-sub">
-                    Family of {lastResult.inputParams?.members} members with selected efficiency upgrades.
-                  </p>
+                  <span className="adm-badge adm-badge-active">{t('ui.k183')}</span>
+                  <h3>{t('ui.k151')}</h3>
+                  <p className="calc-result-sub">{t('ui.k177')}{lastResult.inputParams?.members}{t('ui.k481')}</p>
                 </div>
 
                 <div className="calc-metrics-grid">
                   <div className="calc-metric-box">
-                    <span className="calc-metric-title">Annual Water Saved</span>
+                    <span className="calc-metric-title">{t('ui.k060')}</span>
                     <strong className="calc-metric-number calc-highlight-green">
-                      {formatIN(lastResult.resultMetrics?.annualWaterSavedLiters)} <span className="calc-unit">L/yr</span>
+                      {formatIN(lastResult.resultMetrics?.annualWaterSavedLiters)} <span className="calc-unit">{t('ui.k222')}</span>
                     </strong>
-                    <span className="calc-metric-sub">{lastResult.resultMetrics?.savingsPercent}% household reduction</span>
+                    <span className="calc-metric-sub">{lastResult.resultMetrics?.savingsPercent}{t('ui.k004')}</span>
                   </div>
 
                   <div className="calc-metric-box">
-                    <span className="calc-metric-title">Daily Conserved Total</span>
+                    <span className="calc-metric-title">{t('ui.k136')}</span>
                     <strong className="calc-metric-number">
-                      {formatIN(lastResult.resultMetrics?.dailyConservedLiters)} <span className="calc-unit">L/day</span>
+                      {formatIN(lastResult.resultMetrics?.dailyConservedLiters)} <span className="calc-unit">{t('ui.k217')}</span>
                     </strong>
-                    <span className="calc-metric-sub">Down from {formatIN(lastResult.resultMetrics?.dailyTotalBaselineLiters)} L/day</span>
+                    <span className="calc-metric-sub">{t('ui.k152')}{' '}{formatIN(lastResult.resultMetrics?.dailyTotalBaselineLiters)}{' '}{t('ui.k217')}</span>
                   </div>
                 </div>
 
                 <div className="calc-savings-box">
-                  <h4>Per-Capita Benchmark Comparison</h4>
+                  <h4>{t('ui.k292')}</h4>
                   <div className="calc-savings-row">
-                    <span>Your Conserved Usage:</span>
-                    <strong>{lastResult.resultMetrics?.perCapitaConservedLiters} LPCD</strong>
+                    <span>{t('ui.k470')}</span>
+                    <strong>{lastResult.resultMetrics?.perCapitaConservedLiters}{' '}{t('ui.k223')}</strong>
                   </div>
                   <div className="calc-savings-row">
-                    <span>CPHEEO Urban Benchmark:</span>
-                    <strong>135 LPCD (Litres per capita per day)</strong>
+                    <span>{t('ui.k099')}</span>
+                    <strong>{t('ui.k015')}</strong>
                   </div>
                 </div>
 
                 <div className="calc-assumptions-box">
                   <div className="calc-assumptions-title">
                     <HelpCircle size={14} />
-                    <span>Applied Measures Breakdown</span>
+                    <span>{t('ui.k062')}</span>
                   </div>
                   <ul className="calc-measures-list">
                     {Object.entries(lastResult.resultMetrics?.measureBreakdown || {}).map(([key, val]) => (
                       <li key={key}>
-                        <strong>{key}:</strong> Saves {formatIN(val)} L/day ({formatIN(val * 365)} L/year)
-                      </li>
+                        <strong>{key}:</strong>{' '}{t('ui.k372')}{' '}{formatIN(val)}{' '}{t('ui.k218')}{formatIN(val * 365)}{t('ui.k221')}</li>
                     ))}
                   </ul>
                 </div>
@@ -975,8 +945,8 @@ export default function WaterCalculator() {
             ) : (
               <div className="calc-result-placeholder">
                 <Home size={48} className="calc-ph-icon" />
-                <h3>Audit Domestic Consumption</h3>
-                <p>Provide your family size and select water-saving fixtures to model annual consumption and savings.</p>
+                <h3>{t('ui.k081')}</h3>
+                <p>{t('ui.k306')}</p>
               </div>
             )}
           </div>
@@ -988,8 +958,8 @@ export default function WaterCalculator() {
         <div className="calc-history-card">
           <div className="calc-card-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h2>📜 Your Saved Calculation History</h2>
-              <p>Chronological record of your agricultural, drip, rainwater, and household calculations.</p>
+              <h2>{t('ui.k509')}</h2>
+              <p>{t('ui.k112')}</p>
             </div>
             {user && (
               <button
@@ -999,7 +969,7 @@ export default function WaterCalculator() {
                 disabled={loadingHistory}
               >
                 <RefreshCw size={13} />
-                <span>{loadingHistory ? 'Refreshing…' : 'Refresh History'}</span>
+                <span>{loadingHistory ? t('ui.extra.refreshing') : t('ui.extra.refreshHistory')}</span>
               </button>
             )}
           </div>
@@ -1007,52 +977,50 @@ export default function WaterCalculator() {
           {!user ? (
             <div className="calc-history-auth-needed">
               <Droplets size={44} className="calc-ph-icon" />
-              <h3>Sign in to view your calculation history</h3>
-              <p>Your previous calculations are linked to your user account. Log in to review past savings estimates and water audit models.</p>
-              <NavLink to="/login" className="button button-primary">
-                Sign In to View History
-              </NavLink>
+              <h3>{t('ui.k384')}</h3>
+              <p>{t('ui.k471')}</p>
+              <NavLink to="/login" className="button button-primary">{t('ui.k382')}</NavLink>
             </div>
           ) : (
             <div>
               {/* Filter */}
               <div className="calc-history-filters">
-                <label htmlFor="history-filter-select">Filter by Calculation Type:</label>
+                <label htmlFor="history-filter-select">{t('ui.k181')}</label>
                 <select
                   id="history-filter-select"
                   value={historyFilter}
                   onChange={(e) => setHistoryFilter(e.target.value)}
                 >
-                  <option value="ALL">All Types</option>
-                  <option value="AGRICULTURE">Agriculture</option>
-                  <option value="DRIP_IRRIGATION">Drip Irrigation</option>
-                  <option value="RAINWATER_HARVESTING">Rainwater Harvesting</option>
-                  <option value="HOUSEHOLD">Household</option>
+                  <option value="ALL">{t('ui.k057')}</option>
+                  <option value="AGRICULTURE">{t('ui.k044')}</option>
+                  <option value="DRIP_IRRIGATION">{t('ui.k157')}</option>
+                  <option value="RAINWATER_HARVESTING">{t('ui.k314')}</option>
+                  <option value="HOUSEHOLD">{t('ui.k201')}</option>
                 </select>
               </div>
 
               {loadingHistory ? (
                 <div className="adm-loading-state">
                   <div className="adm-spinner" />
-                  <p>Loading your calculation history…</p>
+                  <p>{t('ui.k238')}</p>
                 </div>
               ) : history.length === 0 ? (
                 <div className="adm-empty-state">
                   <History size={40} />
-                  <h3>No calculations found</h3>
-                  <p>You haven't recorded any {historyFilter !== 'ALL' ? historyFilter.toLowerCase().replace('_', ' ') : ''} calculations yet. Run a calculation above to record your first estimation!</p>
+                  <h3>{t('ui.k274')}</h3>
+                  <p>{t('ui.k469')}{' '}{historyFilter !== 'ALL' ? historyFilter.toLowerCase().replace('_', ' ') : ''}{' '}{t('ui.k475')}</p>
                 </div>
               ) : (
                 <div className="adm-table-wrap">
                   <table className="adm-table">
                     <thead>
                       <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Period</th>
-                        <th>Water Saved</th>
-                        <th>Water Harvested</th>
-                        <th>Action</th>
+                        <th>{t('ui.k140')}</th>
+                        <th>{t('ui.k429')}</th>
+                        <th>{t('ui.k293')}</th>
+                        <th>{t('ui.k460')}</th>
+                        <th>{t('ui.k459')}</th>
+                        <th>{t('ui.k027')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1067,14 +1035,14 @@ export default function WaterCalculator() {
                           <td>{record.period}</td>
                           <td>
                             {record.waterSavedLiters > 0 ? (
-                              <strong className="calc-highlight-green">{formatIN(record.waterSavedLiters)} L</strong>
+                              <strong className="calc-highlight-green">{formatIN(record.waterSavedLiters)}{' '}{t('ui.k215')}</strong>
                             ) : (
                               '—'
                             )}
                           </td>
                           <td>
                             {record.waterHarvestedLiters > 0 ? (
-                              <strong className="calc-highlight-blue">{formatIN(record.waterHarvestedLiters)} L</strong>
+                              <strong className="calc-highlight-blue">{formatIN(record.waterHarvestedLiters)}{' '}{t('ui.k215')}</strong>
                             ) : (
                               '—'
                             )}
@@ -1084,9 +1052,7 @@ export default function WaterCalculator() {
                               type="button"
                               className="button button-outline button-small"
                               onClick={() => setSelectedRecord(record)}
-                            >
-                              View Details
-                            </button>
+                            >{t('ui.k450')}</button>
                           </td>
                         </tr>
                       ))}
@@ -1098,26 +1064,20 @@ export default function WaterCalculator() {
               {/* History Pagination */}
               {historyPagination.totalPages > 1 && (
                 <div className="adm-pagination-bar" style={{ marginTop: '16px' }}>
-                  <span className="adm-pagination-info">
-                    Page <strong>{historyPagination.page}</strong> of <strong>{historyPagination.totalPages}</strong> ({historyPagination.total} total)
-                  </span>
+                  <span className="adm-pagination-info">{t('ui.k289')}<strong>{historyPagination.page}</strong>{' '}{t('ui.k486')}{' '}<strong>{historyPagination.totalPages}</strong> ({historyPagination.total}{t('ui.k494')}</span>
                   <div className="adm-pagination-controls">
                     <button
                       type="button"
                       className="button button-outline button-small"
                       disabled={historyPagination.page <= 1}
                       onClick={() => fetchHistory(historyPagination.page - 1)}
-                    >
-                      ← Previous
-                    </button>
+                    >{t('ui.k501')}</button>
                     <button
                       type="button"
                       className="button button-outline button-small"
                       disabled={historyPagination.page >= historyPagination.totalPages}
                       onClick={() => fetchHistory(historyPagination.page + 1)}
-                    >
-                      Next →
-                    </button>
+                    >{t('ui.k265')}</button>
                   </div>
                 </div>
               )}
@@ -1133,13 +1093,13 @@ export default function WaterCalculator() {
             <div className="adm-modal-header">
               <div>
                 <span className="adm-badge adm-badge-active">{selectedRecord.calculationType?.replace(/_/g, ' ')}</span>
-                <h3 style={{ margin: '6px 0 0', fontSize: '18px' }}>Calculation Details</h3>
+                <h3 style={{ margin: '6px 0 0', fontSize: '18px' }}>{t('ui.k102')}</h3>
               </div>
               <button
                 type="button"
                 className="adm-modal-close"
                 onClick={() => setSelectedRecord(null)}
-                aria-label="Close modal"
+                aria-label={t('ui.a013')}
               >
                 ×
               </button>
@@ -1147,29 +1107,29 @@ export default function WaterCalculator() {
 
             <div className="adm-modal-body" style={{ display: 'grid', gap: '16px' }}>
               <div>
-                <strong>Recorded On:</strong> {new Date(selectedRecord.createdAt).toLocaleString('en-IN')}
+                <strong>{t('ui.k325')}</strong> {new Date(selectedRecord.createdAt).toLocaleString('en-IN')}
               </div>
               <div>
-                <strong>Period:</strong> {selectedRecord.period}
+                <strong>{t('ui.k296')}</strong> {selectedRecord.period}
               </div>
 
               {selectedRecord.waterSavedLiters > 0 && (
                 <div className="calc-savings-row" style={{ background: '#eaf4ee', padding: '10px 14px', borderRadius: '8px' }}>
-                  <span>Period Water Saved:</span>
-                  <strong className="calc-highlight-green">{formatIN(selectedRecord.waterSavedLiters)} Litres</strong>
+                  <span>{t('ui.k295')}</span>
+                  <strong className="calc-highlight-green">{formatIN(selectedRecord.waterSavedLiters)}{' '}{t('ui.k231')}</strong>
                 </div>
               )}
 
               {selectedRecord.waterHarvestedLiters > 0 && (
                 <div className="calc-savings-row" style={{ background: '#e9f2f8', padding: '10px 14px', borderRadius: '8px' }}>
-                  <span>Period Water Harvested:</span>
-                  <strong className="calc-highlight-blue">{formatIN(selectedRecord.waterHarvestedLiters)} Litres</strong>
+                  <span>{t('ui.k294')}</span>
+                  <strong className="calc-highlight-blue">{formatIN(selectedRecord.waterHarvestedLiters)}{' '}{t('ui.k231')}</strong>
                 </div>
               )}
 
               {/* Input Parameters */}
               <div>
-                <h4 style={{ margin: '0 0 6px', fontSize: '13px', color: '#405648' }}>Input Parameters</h4>
+                <h4 style={{ margin: '0 0 6px', fontSize: '13px', color: '#405648' }}>{t('ui.k207')}</h4>
                 <pre style={{ background: '#f5f8f5', padding: '10px', borderRadius: '6px', fontSize: '11px', overflowX: 'auto' }}>
                   {JSON.stringify(selectedRecord.inputParams, null, 2)}
                 </pre>
@@ -1177,7 +1137,7 @@ export default function WaterCalculator() {
 
               {/* Result Metrics */}
               <div>
-                <h4 style={{ margin: '0 0 6px', fontSize: '13px', color: '#405648' }}>Result Metrics</h4>
+                <h4 style={{ margin: '0 0 6px', fontSize: '13px', color: '#405648' }}>{t('ui.k352')}</h4>
                 <pre style={{ background: '#f5f8f5', padding: '10px', borderRadius: '6px', fontSize: '11px', overflowX: 'auto' }}>
                   {JSON.stringify(selectedRecord.resultMetrics, null, 2)}
                 </pre>
@@ -1189,9 +1149,7 @@ export default function WaterCalculator() {
                 type="button"
                 className="button button-outline"
                 onClick={() => setSelectedRecord(null)}
-              >
-                Close
-              </button>
+              >{t('ui.k114')}</button>
             </div>
           </div>
         </div>

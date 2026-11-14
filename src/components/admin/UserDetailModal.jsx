@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useCallback } from 'react'
 import { adminService } from '../../services/adminService'
 import { useAuth } from '../../hooks/useAuth'
@@ -23,6 +24,7 @@ export default function UserDetailModal({
   onClose,
   onUserUpdated,
 }) {
+  const { t } = useTranslation();
   const { user: currentAdmin } = useAuth()
   const [userDetails, setUserDetails] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -46,7 +48,7 @@ export default function UserDetailModal({
       const data = await adminService.getUserById(userId)
       setUserDetails(data?.user || data)
     } catch (err) {
-      setError(err.message || 'Failed to load user details.')
+      setError(t('admin.errors.loadUser'))
     } finally {
       setLoading(false)
     }
@@ -76,14 +78,14 @@ export default function UserDetailModal({
 
     try {
       const res = await adminService.suspendUser(userId, { reason: actionReason.trim() || undefined })
-      setActionSuccess('User account suspended successfully.')
+      setActionSuccess(t('admin.feedback.suspended'))
       const updated = res?.user || { ...userDetails, status: 'SUSPENDED' }
       setUserDetails((prev) => ({ ...prev, ...updated, status: 'SUSPENDED' }))
       setActiveAction(null)
       setActionReason('')
       if (onUserUpdated) onUserUpdated({ id: userId, status: 'SUSPENDED' })
     } catch (err) {
-      setActionError(err.message || 'Failed to suspend user.')
+      setActionError(t('admin.errors.suspendUser'))
     } finally {
       setSubmitting(false)
     }
@@ -98,14 +100,14 @@ export default function UserDetailModal({
 
     try {
       const res = await adminService.activateUser(userId, { reason: actionReason.trim() || undefined })
-      setActionSuccess('User account reactivated successfully.')
+      setActionSuccess(t('admin.feedback.reactivated'))
       const updated = res?.user || { ...userDetails, status: 'ACTIVE' }
       setUserDetails((prev) => ({ ...prev, ...updated, status: 'ACTIVE' }))
       setActiveAction(null)
       setActionReason('')
       if (onUserUpdated) onUserUpdated({ id: userId, status: 'ACTIVE' })
     } catch (err) {
-      setActionError(err.message || 'Failed to activate user.')
+      setActionError(t('admin.errors.activateUser'))
     } finally {
       setSubmitting(false)
     }
@@ -127,7 +129,7 @@ export default function UserDetailModal({
       setTargetRole('')
       if (onUserUpdated) onUserUpdated({ id: userId, role: targetRole })
     } catch (err) {
-      setActionError(err.message || 'Failed to update user role.')
+      setActionError(t('admin.errors.updateRole'))
     } finally {
       setSubmitting(false)
     }
@@ -153,29 +155,27 @@ export default function UserDetailModal({
         <div className="adm-modal-header">
           <div className="adm-modal-title-group">
             <h2 id="user-detail-title" className="adm-modal-title">
-              {userDetails?.name || 'User Profile & Activity'}
+              {userDetails?.name || t('admin.userProfileFallback')}
             </h2>
             {userDetails?.role && (
               <span className={`adm-role-badge adm-role-${userDetails.role.toLowerCase()}`}>
-                {userDetails.role}
+                {t(`admin.userRoles.${userDetails.role}`, { defaultValue: userDetails.role })}
               </span>
             )}
             {userDetails?.status && (
               <span className={`adm-user-status-pill adm-status-${userDetails.status.toLowerCase()}`}>
-                {userDetails.status}
+                {t(`admin.userStatus.${userDetails.status}`, { defaultValue: userDetails.status })}
               </span>
             )}
             {isSelf && (
-              <span className="adm-badge" title="You are currently signed in as this administrator">
-                You
-              </span>
+              <span className="adm-badge" title={t('ui.a048')}>{t('ui.k467')}</span>
             )}
           </div>
           <button
             type="button"
             className="adm-modal-close"
             onClick={onClose}
-            aria-label="Close user details"
+            aria-label={t('ui.a015')}
             disabled={submitting}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -204,9 +204,7 @@ export default function UserDetailModal({
                 type="button"
                 className="button button-outline button-small"
                 onClick={loadUserDetails}
-              >
-                Retry
-              </button>
+              >{t('ui.k353')}</button>
             </div>
           )}
 
@@ -233,78 +231,76 @@ export default function UserDetailModal({
               {/* Identity & Profile Grid */}
               <div className="adm-detail-meta-grid">
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Full Name</span>
+                  <span className="adm-meta-label">{t('ui.k190')}</span>
                   <strong className="adm-author-name">{userDetails.name}</strong>
                 </div>
 
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Email Address</span>
+                  <span className="adm-meta-label">{t('ui.k164')}</span>
                   <span className="adm-author-email">{userDetails.email}</span>
                 </div>
 
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Registered Since</span>
+                  <span className="adm-meta-label">{t('ui.k327')}</span>
                   <span>{formatDate(userDetails.createdAt)}</span>
                 </div>
 
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Location</span>
-                  <span>{userDetails.location || 'Not specified'}</span>
+                  <span className="adm-meta-label">{t('ui.k239')}</span>
+                  <span>{userDetails.location || t('ui.extra.notSpecified')}</span>
                 </div>
               </div>
 
               {/* Bio if present */}
               {userDetails.bio && (
                 <div className="adm-author-bio-box">
-                  <span className="adm-meta-label">User Biography</span>
+                  <span className="adm-meta-label">{t('ui.k438')}</span>
                   <p>{userDetails.bio}</p>
                 </div>
               )}
 
               {/* Aggregated Platform Activity Counts */}
               <div className="adm-detail-section">
-                <h3 className="adm-section-heading">Platform Activity Breakdown</h3>
+                <h3 className="adm-section-heading">{t('ui.k297')}</h3>
                 <div className="adm-activity-counts-grid">
                   <div className="adm-activity-count-card">
                     <span className="adm-act-icon">📝</span>
                     <strong className="adm-act-num">{counts.articlesAuthored ?? 0}</strong>
-                    <span className="adm-act-label">Articles Authored</span>
+                    <span className="adm-act-label">{t('ui.k075')}</span>
                   </div>
 
                   <div className="adm-activity-count-card">
                     <span className="adm-act-icon">💬</span>
                     <strong className="adm-act-num">{counts.postsCreated ?? 0}</strong>
-                    <span className="adm-act-label">Forum Posts</span>
+                    <span className="adm-act-label">{t('ui.k185')}</span>
                   </div>
 
                   <div className="adm-activity-count-card">
                     <span className="adm-act-icon">🗨️</span>
                     <strong className="adm-act-num">{counts.commentsCreated ?? counts.commentsWritten ?? 0}</strong>
-                    <span className="adm-act-label">Comments Written</span>
+                    <span className="adm-act-label">{t('ui.k118')}</span>
                   </div>
 
                   <div className="adm-activity-count-card">
                     <span className="adm-act-icon">💧</span>
                     <strong className="adm-act-num">{counts.calculationsPerformed ?? counts.waterCalculationsRecorded ?? 0}</strong>
-                    <span className="adm-act-label">Water Calculations</span>
+                    <span className="adm-act-label">{t('ui.k456')}</span>
                   </div>
 
                   <div className="adm-activity-count-card">
                     <span className="adm-act-icon">🚩</span>
                     <strong className="adm-act-num">{counts.reportsSubmitted ?? 0}</strong>
-                    <span className="adm-act-label">Reports Filed</span>
+                    <span className="adm-act-label">{t('ui.k341')}</span>
                   </div>
                 </div>
               </div>
 
               {/* ── Administrative Actions Section ──────────────────────── */}
               <div className="adm-moderation-actions-panel">
-                <h3 className="adm-section-heading">Account Controls & Role Management</h3>
+                <h3 className="adm-section-heading">{t('ui.k022')}</h3>
 
                 {isSelf && (
-                  <p className="adm-self-note" role="note">
-                    ℹ️ You are viewing your own administrator account. Self-suspension and self-demotion are prohibited by platform security rules.
-                  </p>
+                  <p className="adm-self-note" role="note">{t('ui.k500')}</p>
                 )}
 
                 {activeAction === null && (
@@ -320,14 +316,12 @@ export default function UserDetailModal({
                           setActionReason('')
                         }}
                         disabled={isSelf}
-                        title={isSelf ? 'Cannot suspend your own account' : 'Suspend account'}
+                        title={isSelf ? t('ui.extra.cannotSuspendSelf') : t('ui.extra.suspendAccount')}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                           <circle cx="12" cy="12" r="10" />
                           <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
-                        </svg>
-                        Suspend User
-                      </button>
+                        </svg>{t('ui.k402')}</button>
                     ) : (
                       <button
                         type="button"
@@ -340,9 +334,7 @@ export default function UserDetailModal({
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                           <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Reactivate User
-                      </button>
+                        </svg>{t('ui.k315')}</button>
                     )}
 
                     {/* Change Role Button */}
@@ -355,12 +347,12 @@ export default function UserDetailModal({
                         setTargetRole(userDetails.role === 'ADMIN' ? 'USER' : 'ADMIN')
                       }}
                       disabled={isSelf}
-                      title={isSelf ? 'Cannot demote your own administrator account' : 'Modify user role'}
+                      title={isSelf ? t('ui.extra.cannotDemoteSelf') : t('ui.extra.modifyRole')}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                       </svg>
-                      {userDetails.role === 'ADMIN' ? 'Demote to USER' : 'Promote to ADMIN'}
+                      {userDetails.role === 'ADMIN' ? t('ui.extra.demoteToUser') : t('ui.extra.promoteToAdmin')}
                     </button>
                   </div>
                 )}
@@ -368,19 +360,15 @@ export default function UserDetailModal({
                 {/* ── Suspend Confirmation Form ───────────────────────────── */}
                 {activeAction === 'suspend' && (
                   <form onSubmit={handleSuspend} className="adm-action-form adm-reject-form">
-                    <h4 className="adm-form-title adm-text-danger">Confirm Account Suspension</h4>
-                    <p className="adm-form-desc">
-                      Suspending <strong>{userDetails.name}</strong> ({userDetails.email}) will immediately revoke their access and invalidate their login sessions.
-                    </p>
+                    <h4 className="adm-form-title adm-text-danger">{t('ui.k123')}</h4>
+                    <p className="adm-form-desc">{t('ui.k405')}<strong>{userDetails.name}</strong> ({userDetails.email}{t('ui.k008')}</p>
 
-                    <label className="adm-form-label">
-                      Suspension Reason (Optional)
-                      <textarea
+                    <label className="adm-form-label">{t('ui.k406')}<textarea
                         className="adm-textarea"
                         rows="2"
                         value={actionReason}
                         onChange={(e) => setActionReason(e.target.value)}
-                        placeholder="e.g., Repeated violations of platform content guidelines."
+                        placeholder={t('ui.a056')}
                         disabled={submitting}
                       />
                     </label>
@@ -391,15 +379,13 @@ export default function UserDetailModal({
                         className="button button-outline button-small"
                         onClick={() => setActiveAction(null)}
                         disabled={submitting}
-                      >
-                        Cancel
-                      </button>
+                      >{t('ui.k106')}</button>
                       <button
                         type="submit"
                         className="button adm-button-danger button-small"
                         disabled={submitting}
                       >
-                        {submitting ? 'Suspending…' : 'Confirm Suspension'}
+                        {submitting ? t('ui.extra.suspending') : t('ui.extra.confirmSuspension')}
                       </button>
                     </div>
                   </form>
@@ -408,19 +394,15 @@ export default function UserDetailModal({
                 {/* ── Activate Confirmation Form ─────────────────────────── */}
                 {activeAction === 'activate' && (
                   <form onSubmit={handleActivate} className="adm-action-form adm-approve-form">
-                    <h4 className="adm-form-title">Confirm Account Reactivation</h4>
-                    <p className="adm-form-desc">
-                      Reactivating <strong>{userDetails.name}</strong> will restore their login access and allow participation in community forums and calculations.
-                    </p>
+                    <h4 className="adm-form-title">{t('ui.k122')}</h4>
+                    <p className="adm-form-desc">{t('ui.k316')}<strong>{userDetails.name}</strong>{t('ui.k499')}</p>
 
-                    <label className="adm-form-label">
-                      Reactivation Note (Optional)
-                      <textarea
+                    <label className="adm-form-label">{t('ui.k317')}<textarea
                         className="adm-textarea"
                         rows="2"
                         value={actionReason}
                         onChange={(e) => setActionReason(e.target.value)}
-                        placeholder="e.g., Account restored following review of submitted appeal."
+                        placeholder={t('ui.a052')}
                         disabled={submitting}
                       />
                     </label>
@@ -431,15 +413,13 @@ export default function UserDetailModal({
                         className="button button-outline button-small"
                         onClick={() => setActiveAction(null)}
                         disabled={submitting}
-                      >
-                        Cancel
-                      </button>
+                      >{t('ui.k106')}</button>
                       <button
                         type="submit"
                         className="button button-primary button-small"
                         disabled={submitting}
                       >
-                        {submitting ? 'Reactivating…' : 'Confirm Reactivation'}
+                        {submitting ? t('ui.extra.reactivating') : t('ui.extra.confirmReactivation')}
                       </button>
                     </div>
                   </form>
@@ -449,13 +429,13 @@ export default function UserDetailModal({
                 {activeAction === 'role' && (
                   <form onSubmit={handleRoleChange} className="adm-action-form adm-approve-form">
                     <h4 className="adm-form-title">
-                      {targetRole === 'ADMIN' ? 'Promote User to Administrator' : 'Demote Administrator to Standard User'}
+                      {targetRole === 'ADMIN' ? t('ui.extra.promoteUserToAdmin') : t('ui.extra.demoteAdminToUser')}
                     </h4>
                     <p className="adm-form-desc">
                       {targetRole === 'ADMIN' ? (
-                        <>Granting administrator privileges to <strong>{userDetails.name}</strong> will give them full access to moderation, user controls, and system statistics.</>
+                        <>{t('ui.k191')}{' '}<strong>{userDetails.name}</strong>{' '}{t('ui.k498')}</>
                       ) : (
-                        <>Demoting <strong>{userDetails.name}</strong> to standard user will revoke all administrative dashboard access and moderation permissions.</>
+                        <>{t('ui.k142')}{' '}<strong>{userDetails.name}</strong>{' '}{t('ui.k493')}</>
                       )}
                     </p>
 
@@ -465,15 +445,13 @@ export default function UserDetailModal({
                         className="button button-outline button-small"
                         onClick={() => setActiveAction(null)}
                         disabled={submitting}
-                      >
-                        Cancel
-                      </button>
+                      >{t('ui.k106')}</button>
                       <button
                         type="submit"
                         className={`button ${targetRole === 'ADMIN' ? 'button-primary' : 'adm-button-danger'} button-small`}
                         disabled={submitting}
                       >
-                        {submitting ? 'Updating Role…' : `Confirm Change to ${targetRole}`}
+                        {submitting ? t('ui.extra.updatingRole') : t('ui.extra.confirmRoleChange', { role: t(`admin.userRoles.${targetRole}`) })}
                       </button>
                     </div>
                   </form>
@@ -490,9 +468,7 @@ export default function UserDetailModal({
             className="button button-outline"
             onClick={onClose}
             disabled={submitting}
-          >
-            Close
-          </button>
+          >{t('ui.k114')}</button>
         </div>
       </div>
     </div>

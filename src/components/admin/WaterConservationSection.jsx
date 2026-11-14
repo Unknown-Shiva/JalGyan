@@ -1,13 +1,9 @@
+import { useTranslation } from 'react-i18next';
 /**
  * WaterConservationSection — water stats + calculation type breakdown.
  */
 
-const TYPE_LABELS = {
-  AGRICULTURE: 'Agriculture',
-  DRIP_IRRIGATION: 'Drip Irrigation',
-  RAINWATER_HARVESTING: 'Rainwater Harvesting',
-  HOUSEHOLD: 'Household',
-}
+const CALCULATION_TYPES = ['AGRICULTURE', 'DRIP_IRRIGATION', 'RAINWATER_HARVESTING', 'HOUSEHOLD']
 
 function WaterMetric({ label, value, unit, formatINNumber }) {
   return (
@@ -22,14 +18,15 @@ function WaterMetric({ label, value, unit, formatINNumber }) {
 }
 
 function BreakdownBar({ type, count, total }) {
+  const { t } = useTranslation()
   const pct = total > 0 ? Math.round((count / total) * 100) : 0
   return (
     <div className="adm-breakdown-row">
       <div className="adm-breakdown-meta">
-        <span className="adm-breakdown-label">{TYPE_LABELS[type] ?? type}</span>
+        <span className="adm-breakdown-label">{t(`admin.calculationTypes.${type}`, { defaultValue: type })}</span>
         <span className="adm-breakdown-count">{new Intl.NumberFormat('en-IN').format(count)}</span>
       </div>
-      <div className="adm-breakdown-track" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`${TYPE_LABELS[type] ?? type}: ${pct}%`}>
+      <div className="adm-breakdown-track" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={`${t(`admin.calculationTypes.${type}`, { defaultValue: type })}: ${pct}%`}>
         <div className="adm-breakdown-fill" style={{ width: `${pct}%` }} />
       </div>
       <span className="adm-breakdown-pct">{pct}%</span>
@@ -38,15 +35,14 @@ function BreakdownBar({ type, count, total }) {
 }
 
 export default function WaterConservationSection({ data, loading, formatINNumber }) {
+  const { t } = useTranslation();
   if (loading) {
     return (
       <section className="adm-section" aria-labelledby="section-water">
         <h2 className="adm-section-title" id="section-water">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
             <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-          </svg>
-          Water Conservation
-        </h2>
+          </svg>{t('ui.k457')}</h2>
         <div className="adm-water-grid">
           {[0,1,2].map(i => <div key={i} className="adm-stat-card adm-skeleton"><div className="adm-sk-label"/><div className="adm-sk-value"/></div>)}
         </div>
@@ -62,34 +58,32 @@ export default function WaterConservationSection({ data, loading, formatINNumber
       <h2 className="adm-section-title" id="section-water">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
           <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-        </svg>
-        Water Conservation
-      </h2>
+        </svg>{t('ui.k457')}</h2>
 
       <div className="adm-water-grid">
         <WaterMetric
-          label="Annual Water Saved"
+          label={t('admin.waterMetrics.annualSaved')}
           value={data?.totalAnnualWaterSavedLiters}
           unit="L"
           formatINNumber={formatINNumber}
         />
         <WaterMetric
-          label="Annual Rainwater Harvested"
+          label={t('admin.waterMetrics.annualHarvest')}
           value={data?.totalAnnualWaterHarvestedLiters}
           unit="L"
           formatINNumber={formatINNumber}
         />
         <WaterMetric
-          label="Total Calculations"
+          label={t('admin.waterMetrics.totalCalculations')}
           value={total}
           formatINNumber={formatINNumber}
         />
       </div>
 
       {total > 0 && (
-        <div className="adm-breakdown-panel" aria-label="Calculation type breakdown">
-          <h3 className="adm-breakdown-title">Breakdown by Type</h3>
-          {Object.entries(TYPE_LABELS).map(([key]) => (
+        <div className="adm-breakdown-panel" aria-label={t('ui.a008')}>
+          <h3 className="adm-breakdown-title">{t('ui.k096')}</h3>
+          {CALCULATION_TYPES.map((key) => (
             <BreakdownBar
               key={key}
               type={key}
@@ -101,7 +95,7 @@ export default function WaterConservationSection({ data, loading, formatINNumber
       )}
 
       {total === 0 && (
-        <p className="adm-water-empty">No water calculations recorded yet.</p>
+        <p className="adm-water-empty">{t('ui.k279')}</p>
       )}
     </section>
   )

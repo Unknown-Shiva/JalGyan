@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { adminService } from '../../services/adminService'
 import UserDetailModal from '../../components/admin/UserDetailModal'
@@ -16,6 +17,7 @@ function formatDate(dateStr) {
 }
 
 export default function UserManagement() {
+  const { t } = useTranslation();
   const [users, setUsers] = useState([])
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 })
   const [loading, setLoading] = useState(true)
@@ -50,7 +52,7 @@ export default function UserManagement() {
       setUsers(data?.users || [])
       setPagination(data?.pagination || { page: targetPage, limit: 10, total: 0, totalPages: 1 })
     } catch (err) {
-      setError(err.message || 'Failed to load user accounts.')
+      setError(t('admin.errors.loadUsers'))
     } finally {
       setLoading(false)
     }
@@ -78,10 +80,10 @@ export default function UserManagement() {
   }
 
   const handleUserUpdated = ({ id, status, role }) => {
-    let msg = 'User account updated successfully.'
-    if (status === 'SUSPENDED') msg = 'User account suspended.'
-    else if (status === 'ACTIVE') msg = 'User account reactivated.'
-    else if (role) msg = `User role changed to ${role}.`
+    let msg = t('admin.notifications.userUpdated')
+    if (status === 'SUSPENDED') msg = t('admin.notifications.userSuspended')
+    else if (status === 'ACTIVE') msg = t('admin.notifications.userReactivated')
+    else if (role) msg = t('admin.notifications.userRoleChanged', { role: t(`admin.userRoles.${role}`, { defaultValue: role }) })
 
     setNotification({ type: 'success', message: msg })
     // Refresh user list
@@ -101,16 +103,14 @@ export default function UserManagement() {
       <header className="adm-header">
         <div>
           <div className="adm-header-title-row">
-            <h1 className="adm-page-title">User Management</h1>
+            <h1 className="adm-page-title">{t('ui.k440')}</h1>
             {pagination.total > 0 && (
               <span className="adm-badge adm-badge-users-count">
-                {pagination.total} Registered User{pagination.total === 1 ? '' : 's'}
+                {pagination.total}{' '}{t('ui.k328')}{pagination.total === 1 ? '' : 's'}
               </span>
             )}
           </div>
-          <p className="adm-page-subtitle">
-            View platform user accounts, manage administrator privileges, inspect activity metrics, and enforce account suspensions.
-          </p>
+          <p className="adm-page-subtitle">{t('ui.k452')}</p>
         </div>
 
         <button
@@ -118,14 +118,14 @@ export default function UserManagement() {
           className="button button-outline button-small"
           onClick={() => fetchUsers(pagination.page)}
           disabled={loading}
-          aria-label="Refresh user list"
+          aria-label={t('ui.a034')}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
             <polyline points="23 4 23 10 17 10" />
             <polyline points="1 20 1 14 7 14" />
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
           </svg>
-          {loading ? 'Refreshing…' : 'Refresh'}
+          {loading ? t('ui.extra.refreshing') : t('ui.extra.refresh')}
         </button>
       </header>
 
@@ -140,7 +140,7 @@ export default function UserManagement() {
             type="button"
             className="adm-banner-close"
             onClick={() => setNotification(null)}
-            aria-label="Dismiss notification"
+            aria-label={t('ui.a021')}
           >
             ×
           </button>
@@ -156,9 +156,7 @@ export default function UserManagement() {
             type="button"
             className="button button-outline button-small"
             onClick={() => fetchUsers(pagination.page)}
-          >
-            Retry
-          </button>
+          >{t('ui.k353')}</button>
         </div>
       )}
 
@@ -173,10 +171,10 @@ export default function UserManagement() {
           <input
             type="search"
             className="adm-search-input"
-            placeholder="Search by name or email…"
+            placeholder={t('ui.a039')}
             value={searchInput}
             onChange={handleSearchChange}
-            aria-label="Search users by name or email"
+            aria-label={t('ui.a042')}
           />
           {searchInput && (
             <button
@@ -186,7 +184,7 @@ export default function UserManagement() {
                 setSearchInput('')
                 setActiveSearch('')
               }}
-              aria-label="Clear search"
+              aria-label={t('ui.a010')}
             >
               ×
             </button>
@@ -195,37 +193,37 @@ export default function UserManagement() {
 
         {/* Role Filter */}
         <div className="adm-filter-group">
-          <label htmlFor="filter-role" className="adm-filter-label">Role:</label>
+          <label htmlFor="filter-role" className="adm-filter-label">{t('ui.k364')}</label>
           <select
             id="filter-role"
             className="adm-select"
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
           >
-            <option value="ALL">All Roles</option>
-            <option value="USER">USER</option>
-            <option value="ADMIN">ADMIN</option>
+            <option value="ALL">{t('ui.k054')}</option>
+            <option value="USER">{t('ui.k430')}</option>
+            <option value="ADMIN">{t('ui.k021')}</option>
           </select>
         </div>
 
         {/* Status Filter */}
         <div className="adm-filter-group">
-          <label htmlFor="filter-status" className="adm-filter-label">Status:</label>
+          <label htmlFor="filter-status" className="adm-filter-label">{t('ui.k392')}</label>
           <select
             id="filter-status"
             className="adm-select"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <option value="ALL">All Statuses</option>
-            <option value="ACTIVE">Active</option>
-            <option value="SUSPENDED">Suspended</option>
+            <option value="ALL">{t('ui.k055')}</option>
+            <option value="ACTIVE">{t('ui.k035')}</option>
+            <option value="SUSPENDED">{t('ui.k403')}</option>
           </select>
         </div>
 
         {/* Sort Controls */}
         <div className="adm-filter-group">
-          <label htmlFor="sort-by" className="adm-filter-label">Sort:</label>
+          <label htmlFor="sort-by" className="adm-filter-label">{t('ui.k386')}</label>
           <select
             id="sort-by"
             className="adm-select"
@@ -236,10 +234,10 @@ export default function UserManagement() {
               setSortOrder(so)
             }}
           >
-            <option value="createdAt:desc">Newest First</option>
-            <option value="createdAt:asc">Oldest First</option>
-            <option value="name:asc">Name (A-Z)</option>
-            <option value="name:desc">Name (Z-A)</option>
+            <option value="createdAt:desc">{t('ui.k263')}</option>
+            <option value="createdAt:asc">{t('ui.k283')}</option>
+            <option value="name:asc">{t('ui.k259')}</option>
+            <option value="name:desc">{t('ui.k260')}</option>
           </select>
         </div>
       </div>
@@ -268,7 +266,7 @@ export default function UserManagement() {
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
             </div>
-            <h3 className="adm-empty-title">No Users Found</h3>
+            <h3 className="adm-empty-title">{t('ui.k268')}</h3>
             <p className="adm-empty-desc">
               {activeSearch || roleFilter !== 'ALL' || statusFilter !== 'ALL'
                 ? 'No users match the selected search and filter criteria. Try adjusting your filters.'
@@ -277,15 +275,15 @@ export default function UserManagement() {
           </div>
         ) : (
           <div className="adm-table-wrapper">
-            <table className="adm-table" aria-label="Registered users">
+            <table className="adm-table" aria-label={t('ui.a035')}>
               <thead>
                 <tr>
-                  <th scope="col" style={{ minWidth: '220px' }}>User Details</th>
-                  <th scope="col">Role</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Location</th>
-                  <th scope="col">Joined Date</th>
-                  <th scope="col" className="adm-text-right">Actions</th>
+                  <th scope="col" style={{ minWidth: '220px' }}>{t('ui.k439')}</th>
+                  <th scope="col">{t('ui.k363')}</th>
+                  <th scope="col">{t('ui.k391')}</th>
+                  <th scope="col">{t('ui.k239')}</th>
+                  <th scope="col">{t('ui.k210')}</th>
+                  <th scope="col" className="adm-text-right">{t('ui.k031')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -299,12 +297,12 @@ export default function UserManagement() {
                     </td>
                     <td>
                       <span className={`adm-role-badge adm-role-${(u.role || '').toLowerCase()}`}>
-                        {u.role}
+                        {t(`admin.userRoles.${u.role}`, { defaultValue: u.role })}
                       </span>
                     </td>
                     <td>
                       <span className={`adm-user-status-pill adm-status-${(u.status || '').toLowerCase()}`}>
-                        {u.status}
+                        {t(`admin.userStatus.${u.status}`, { defaultValue: u.status })}
                       </span>
                     </td>
                     <td>
@@ -327,9 +325,7 @@ export default function UserManagement() {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                           <circle cx="12" cy="12" r="3" />
                           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                        </svg>
-                        Manage
-                      </button>
+                        </svg>{t('ui.k244')}</button>
                     </td>
                   </tr>
                 ))}
@@ -341,10 +337,8 @@ export default function UserManagement() {
         {/* ── Pagination ────────────────────────────────────────────────── */}
         {!loading && pagination.total > 0 && (
           <div className="adm-pagination-bar">
-            <span className="adm-pagination-info">
-              Showing <strong>{startRecord}</strong> to <strong>{endRecord}</strong> of{' '}
-              <strong>{pagination.total}</strong> users
-            </span>
+            <span className="adm-pagination-info">{t('ui.k381')}<strong>{startRecord}</strong>{' '}{t('ui.k491')}{' '}<strong>{endRecord}</strong>{' '}{t('ui.k486')}{' '}
+              <strong>{pagination.total}</strong>{t('ui.k495')}</span>
 
             <div className="adm-pagination-controls">
               <button
@@ -352,13 +346,10 @@ export default function UserManagement() {
                 className="button button-outline button-small"
                 onClick={() => handlePageChange(pagination.page - 1)}
                 disabled={pagination.page <= 1}
-                aria-label="Previous page"
-              >
-                ← Previous
-              </button>
+                aria-label={t('ui.a028')}
+              >{t('ui.k501')}</button>
 
-              <span className="adm-page-indicator" aria-current="page">
-                Page {pagination.page} of {pagination.totalPages}
+              <span className="adm-page-indicator" aria-current="page">{t('ui.k289')}{pagination.page}{' '}{t('ui.k486')}{' '}{pagination.totalPages}
               </span>
 
               <button
@@ -366,10 +357,8 @@ export default function UserManagement() {
                 className="button button-outline button-small"
                 onClick={() => handlePageChange(pagination.page + 1)}
                 disabled={pagination.page >= pagination.totalPages}
-                aria-label="Next page"
-              >
-                Next →
-              </button>
+                aria-label={t('ui.a027')}
+              >{t('ui.k265')}</button>
             </div>
           </div>
         )}

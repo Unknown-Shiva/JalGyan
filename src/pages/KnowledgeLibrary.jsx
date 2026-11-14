@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -21,6 +22,7 @@ import { bookmarkService } from '../services/bookmarkService';
 import { useAuth } from '../hooks/useAuth';
 
 export default function KnowledgeLibrary() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -64,7 +66,7 @@ export default function KnowledgeLibrary() {
       setArticles(data.articles || []);
       setPagination(data.pagination || { page: 1, totalPages: 1, total: 0 });
     } catch (err) {
-      setError('Unable to load articles. Please check your network and try again.');
+      setError(t('errors.articlesLoad'));
     } finally {
       setLoading(false);
     }
@@ -165,24 +167,16 @@ export default function KnowledgeLibrary() {
       <section className="knowledge-hero">
         <div className="knowledge-hero-content">
           <span className="eyebrow light-eyebrow">
-            <Sparkles size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-            DIGITAL KNOWLEDGE SHARING PLATFORM &bull; BUREAU OF WATER USE EFFICIENCY
-          </span>
-          <h1>
-            Water Conservation <em>Wiki & Knowledge Base</em>
+            <Sparkles size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />{t('ui.k135')}</span>
+          <h1>{t('ui.k457')}{' '}<em>{t('ui.k461')}</em>
           </h1>
-          <p>
-            Peer-reviewed field techniques, technical schematics, and proven methods for
-            minimizing water scarcity across agriculture, urban ecosystems, and local watersheds.
-          </p>
+          <p>{t('ui.k290')}</p>
 
           <div className="hero-buttons">
             <Link to="/articles/submit" className="button button-white">
-              <PlusCircle size={16} /> Submit an Article
-            </Link>
+              <PlusCircle size={16} />{t('ui.k393')}</Link>
             <Link to="/resources" className="button button-outline" style={{ background: '#ffffff20', color: '#fff', borderColor: '#ffffff40' }}>
-              <Video size={16} /> Video & Resource Library
-            </Link>
+              <Video size={16} />{t('ui.k447')}</Link>
           </div>
         </div>
 
@@ -190,17 +184,17 @@ export default function KnowledgeLibrary() {
           <div className="knowledge-stat-card">
             <Droplets size={22} className="stat-icon" />
             <div className="stat-value">6+</div>
-            <div className="stat-label">Conservation Domains</div>
+            <div className="stat-label">{t('ui.k124')}</div>
           </div>
           <div className="knowledge-stat-card">
             <FileText size={22} className="stat-icon" />
             <div className="stat-value">{pagination.total || 4}</div>
-            <div className="stat-label">Verified Wiki Articles</div>
+            <div className="stat-label">{t('ui.k445')}</div>
           </div>
           <div className="knowledge-stat-card">
             <Clock size={22} className="stat-icon" />
             <div className="stat-value">45%</div>
-            <div className="stat-label">Avg Irrigation Saving</div>
+            <div className="stat-label">{t('ui.k088')}</div>
           </div>
         </div>
       </section>
@@ -211,7 +205,7 @@ export default function KnowledgeLibrary() {
           <Search size={18} className="search-icon" />
           <input
             type="text"
-            placeholder="Search conservation techniques, drip systems, rainwater sumps..."
+            placeholder={t('ui.a040')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="knowledge-search-input"
@@ -230,18 +224,16 @@ export default function KnowledgeLibrary() {
               <X size={15} />
             </button>
           )}
-          <button type="submit" className="button button-primary button-small">
-            Search
-          </button>
+          <button type="submit" className="button button-primary button-small">{t('ui.k376')}</button>
         </form>
 
         <div className="knowledge-toolbar-controls">
           <div className="sort-control">
             <Filter size={15} />
-            <select value={currentSort} onChange={handleSortChange} aria-label="Sort articles">
-              <option value="recent">Most Recent</option>
-              <option value="popular">Most Viewed</option>
-              <option value="readTime">Read Time</option>
+            <select value={currentSort} onChange={handleSortChange} aria-label={t('ui.a044')}>
+              <option value="recent">{t('ui.k256')}</option>
+              <option value="popular">{t('ui.k257')}</option>
+              <option value="readTime">{t('ui.k319')}</option>
             </select>
           </div>
         </div>
@@ -252,9 +244,7 @@ export default function KnowledgeLibrary() {
         <button
           className={`category-chip ${!currentCategory ? 'active' : ''}`}
           onClick={() => handleCategoryChange('')}
-        >
-          All Topics
-        </button>
+        >{t('ui.k056')}</button>
         {categories.map((cat) => (
           <button
             key={cat.id || cat.slug}
@@ -272,16 +262,14 @@ export default function KnowledgeLibrary() {
       {/* Active Filter Indicators */}
       {(currentCategory || currentSearch) && (
         <div className="active-filter-bar">
-          <span>Filtering by:</span>
+          <span>{t('ui.k182')}</span>
           {currentCategory && (
-            <span className="filter-badge">
-              Topic: {categories.find((c) => c.slug === currentCategory)?.name || currentCategory}
+            <span className="filter-badge">{t('ui.k421')}{categories.find((c) => c.slug === currentCategory)?.name || currentCategory}
               <button onClick={() => handleCategoryChange('')}><X size={12} /></button>
             </span>
           )}
           {currentSearch && (
-            <span className="filter-badge">
-              Keyword: "{currentSearch}"
+            <span className="filter-badge">{t('ui.k211')}{currentSearch}"
               <button
                 onClick={() => {
                   setSearchInput('');
@@ -294,9 +282,7 @@ export default function KnowledgeLibrary() {
               </button>
             </span>
           )}
-          <button className="text-button filter-reset-btn" onClick={handleClearFilters}>
-            Reset all
-          </button>
+          <button className="text-button filter-reset-btn" onClick={handleClearFilters}>{t('ui.k343')}</button>
         </div>
       )}
 
@@ -304,7 +290,7 @@ export default function KnowledgeLibrary() {
       {loading ? (
         <div className="knowledge-loading">
           <Droplets className="spin-icon" size={28} />
-          <p>Loading knowledge repository...</p>
+          <p>{t('ui.k236')}</p>
         </div>
       ) : error ? (
         <div className="alert-error" role="alert">
@@ -313,11 +299,9 @@ export default function KnowledgeLibrary() {
       ) : articles.length === 0 ? (
         <div className="knowledge-empty-state">
           <BookOpen size={48} className="empty-icon" />
-          <h3>No articles found</h3>
-          <p>No water conservation guides match your current search or category criteria.</p>
-          <button className="button button-primary" onClick={handleClearFilters}>
-            Clear all filters
-          </button>
+          <h3>{t('ui.k272')}</h3>
+          <p>{t('ui.k280')}</p>
+          <button className="button button-primary" onClick={handleClearFilters}>{t('ui.k113')}</button>
         </div>
       ) : (
         <div className="articles-grid">
@@ -339,7 +323,7 @@ export default function KnowledgeLibrary() {
                     </div>
                   )}
                   <span className="article-category-badge">
-                    {art.category?.name || 'Water Conservation'}
+                    {art.category?.name || t('ui.extra.fallbackCategory')}
                   </span>
                 </Link>
 
@@ -349,8 +333,7 @@ export default function KnowledgeLibrary() {
                       <Clock size={12} /> {art.readTime || '5 min read'}
                     </span>
                     <span className="article-views">
-                      <Eye size={12} /> {art.viewsCount || 0} views
-                    </span>
+                      <Eye size={12} /> {art.viewsCount || 0}{t('ui.k497')}</span>
                   </div>
 
                   <h3 className="article-card-title">
@@ -362,30 +345,30 @@ export default function KnowledgeLibrary() {
                   <div className="article-card-footer">
                     <div className="article-author-info">
                       <span className="avatar avatar-small">
-                        {(art.author?.name || 'Author')
+                        {(art.author?.name || t('ui.extra.author'))
                           .split(' ')
                           .map((x) => x[0])
                           .join('')
                           .slice(0, 2)
                           .toUpperCase()}
                       </span>
-                      <span className="author-name">{art.author?.name || 'Contributor'}</span>
+                      <span className="author-name">{art.author?.name || t('ui.extra.contributor')}</span>
                     </div>
 
                     <div className="article-card-actions">
                       <button
                         className={`icon-button bookmark-btn ${isBookmarked ? 'active' : ''}`}
-                        title={isBookmarked ? 'Remove bookmark' : 'Save article'}
+                        title={isBookmarked ? t('common.removeBookmark') : t('ui.extra.saveArticle')}
                         onClick={(e) => toggleBookmark(e, art.id)}
                         disabled={bookmarkingId === art.id}
-                        aria-label="Bookmark article"
+                        aria-label={t('ui.a006')}
                       >
                         <Bookmark size={16} fill={isBookmarked ? 'currentColor' : 'none'} />
                       </button>
                       <Link
                         to={`/articles/${art.slug || art.id}`}
                         className="article-read-link"
-                        title="Read full article"
+                        title={t('ui.a029')}
                       >
                         <ArrowRight size={16} />
                       </Link>
@@ -409,11 +392,8 @@ export default function KnowledgeLibrary() {
               next.set('page', String(currentPage - 1));
               setSearchParams(next);
             }}
-          >
-            Previous
-          </button>
-          <span className="pagination-info">
-            Page {pagination.page} of {pagination.totalPages}
+          >{t('ui.k303')}</button>
+          <span className="pagination-info">{t('ui.k289')}{pagination.page}{' '}{t('ui.k486')}{' '}{pagination.totalPages}
           </span>
           <button
             className="button button-outline button-small"
@@ -423,9 +403,7 @@ export default function KnowledgeLibrary() {
               next.set('page', String(currentPage + 1));
               setSearchParams(next);
             }}
-          >
-            Next
-          </button>
+          >{t('ui.k264')}</button>
         </div>
       )}
     </div>

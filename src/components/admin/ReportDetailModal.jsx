@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useCallback } from 'react'
 import { adminService } from '../../services/adminService'
 
@@ -18,6 +19,7 @@ function formatDate(dateStr) {
 }
 
 function ReasonBadge({ reason }) {
+  const { t } = useTranslation()
   const norm = String(reason || '').toUpperCase()
   let accentClass = 'adm-reason-other'
   if (norm === 'SPAM') accentClass = 'adm-reason-spam'
@@ -25,10 +27,11 @@ function ReasonBadge({ reason }) {
   else if (norm === 'MISINFORMATION') accentClass = 'adm-reason-misinformation'
   else if (norm === 'INAPPROPRIATE') accentClass = 'adm-reason-inappropriate'
 
-  return <span className={`adm-reason-pill ${accentClass}`}>{reason}</span>
+  return <span className={`adm-reason-pill ${accentClass}`}>{t(`report.reasons.${norm}`, { defaultValue: reason })}</span>
 }
 
 function TargetTypeBadge({ type }) {
+  const { t } = useTranslation()
   const norm = String(type || '').toUpperCase()
   let icon = '📄'
   if (norm === 'POST') icon = '💬'
@@ -39,22 +42,23 @@ function TargetTypeBadge({ type }) {
   return (
     <span className="adm-target-type-badge">
       <span className="adm-tt-icon">{icon}</span>
-      <span>{type}</span>
+      <span>{t(`admin.targetTypes.${norm}`, { defaultValue: type })}</span>
     </span>
   )
 }
 
 function StatusBadge({ status }) {
+  const { t } = useTranslation()
   const norm = String(status || '').toUpperCase()
   let pillClass = 'adm-report-status-pending'
-  let label = 'Pending'
+  let label = t(`admin.reportStatus.${norm}`, { defaultValue: status })
 
   if (norm === 'RESOLVED') {
     pillClass = 'adm-report-status-resolved'
-    label = 'Resolved'
+    label = t('admin.reportStatus.RESOLVED')
   } else if (norm === 'DISMISSED') {
     pillClass = 'adm-report-status-dismissed'
-    label = 'Dismissed'
+    label = t('admin.reportStatus.DISMISSED')
   }
 
   return <span className={`adm-report-status-pill ${pillClass}`}>{label}</span>
@@ -65,6 +69,7 @@ export default function ReportDetailModal({
   onClose,
   onReportUpdated,
 }) {
+  const { t } = useTranslation();
   const [reportDetails, setReportDetails] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -84,7 +89,7 @@ export default function ReportDetailModal({
       const data = await adminService.getReportById(reportId)
       setReportDetails(data?.report || data)
     } catch (err) {
-      setError(err.message || 'Failed to load report details.')
+      setError(t('admin.errors.loadReport'))
     } finally {
       setLoading(false)
     }
@@ -121,7 +126,7 @@ export default function ReportDetailModal({
       setModeratorNote('')
       if (onReportUpdated) onReportUpdated({ id: reportId, status: 'RESOLVED' })
     } catch (err) {
-      setActionError(err.message || 'Failed to resolve report.')
+      setActionError(t('admin.errors.resolveReport'))
     } finally {
       setSubmitting(false)
     }
@@ -143,7 +148,7 @@ export default function ReportDetailModal({
       setModeratorNote('')
       if (onReportUpdated) onReportUpdated({ id: reportId, status: 'DISMISSED' })
     } catch (err) {
-      setActionError(err.message || 'Failed to dismiss report.')
+      setActionError(t('admin.errors.dismissReport'))
     } finally {
       setSubmitting(false)
     }
@@ -172,9 +177,7 @@ export default function ReportDetailModal({
         {/* ── Modal Header ──────────────────────────────────────────────── */}
         <div className="adm-modal-header">
           <div className="adm-modal-title-group">
-            <h2 id="report-detail-title" className="adm-modal-title">
-              Report Moderation
-            </h2>
+            <h2 id="report-detail-title" className="adm-modal-title">{t('ui.k335')}</h2>
             {reportDetails?.targetType && (
               <TargetTypeBadge type={reportDetails.targetType} />
             )}
@@ -189,7 +192,7 @@ export default function ReportDetailModal({
             type="button"
             className="adm-modal-close"
             onClick={onClose}
-            aria-label="Close report details"
+            aria-label={t('ui.a014')}
             disabled={submitting}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -218,9 +221,7 @@ export default function ReportDetailModal({
                 type="button"
                 className="button button-outline button-small"
                 onClick={loadReportDetails}
-              >
-                Retry
-              </button>
+              >{t('ui.k353')}</button>
             </div>
           )}
 
@@ -247,65 +248,60 @@ export default function ReportDetailModal({
               {/* Report Metadata Grid */}
               <div className="adm-detail-meta-grid">
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Report ID</span>
+                  <span className="adm-meta-label">{t('ui.k334')}</span>
                   <span className="adm-meta-mono">{reportDetails.id}</span>
                 </div>
 
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Filed By</span>
-                  <strong className="adm-author-name">{reportDetails.reporter?.name || 'Anonymous Reporter'}</strong>
+                  <span className="adm-meta-label">{t('ui.k180')}</span>
+                  <strong className="adm-author-name">{reportDetails.reporter?.name || t('admin.anonymousReporter')}</strong>
                   <span className="adm-author-email">{reportDetails.reporter?.email || '—'}</span>
                 </div>
 
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Date Reported</span>
+                  <span className="adm-meta-label">{t('ui.k141')}</span>
                   <span>{formatDate(reportDetails.createdAt)}</span>
                 </div>
 
                 <div className="adm-detail-meta-item">
-                  <span className="adm-meta-label">Moderation Status</span>
-                  <span>{reportDetails.status}</span>
+                  <span className="adm-meta-label">{t('ui.k252')}</span>
+                  <span>{t(`admin.reportStatus.${String(reportDetails.status || '').toUpperCase()}`, { defaultValue: reportDetails.status })}</span>
                   {reportDetails.resolvedAt && (
-                    <span className="adm-meta-desc">on {formatDate(reportDetails.resolvedAt)}</span>
+                    <span className="adm-meta-desc">{t('ui.k487')}{' '}{formatDate(reportDetails.resolvedAt)}</span>
                   )}
                 </div>
               </div>
 
               {/* Reporter's Description / Note */}
               <div className="adm-detail-section">
-                <h3 className="adm-section-heading">Reporter’s Explanation</h3>
+                <h3 className="adm-section-heading">{t('ui.k339')}</h3>
                 {reportDetails.description ? (
                   <blockquote className="adm-detail-summary">
                     {reportDetails.description}
                   </blockquote>
                 ) : (
-                  <p className="adm-muted-text">No additional written description provided by the reporter.</p>
+                  <p className="adm-muted-text">{t('ui.k270')}</p>
                 )}
               </div>
 
               {/* ── Target Entity Section ─────────────────────────────────── */}
               <div className="adm-detail-section">
                 <div className="adm-target-section-header">
-                  <h3 className="adm-section-heading" style={{ margin: 0 }}>
-                    Reported Content ({reportDetails.targetType})
+                  <h3 className="adm-section-heading" style={{ margin: 0 }}>{t('ui.k336')}{reportDetails.targetType})
                   </h3>
 
                   {isTargetDeleted && (
-                    <span className="adm-deleted-target-badge" title="The reported item was deleted. A preserved snapshot is displayed below.">
-                      ⚠️ Target Content Deleted — Preserved Snapshot
-                    </span>
+                    <span className="adm-deleted-target-badge" title={t('ui.a046')}>{t('ui.k502')}</span>
                   )}
 
                   {isAvailable && (
-                    <span className="adm-live-target-badge">
-                      🟢 Live Platform Content
-                    </span>
+                    <span className="adm-live-target-badge">{t('ui.k510')}</span>
                   )}
                 </div>
 
                 {isTargetMissing ? (
                   <div className="adm-target-missing-box" role="status">
-                    <p>Target entity could not be loaded or was removed without snapshot.</p>
+                    <p>{t('ui.k413')}</p>
                   </div>
                 ) : (
                   <div className={`adm-target-box ${isTargetDeleted ? 'adm-target-box-deleted' : ''}`}>
@@ -316,10 +312,10 @@ export default function ReportDetailModal({
                         {target.body && <p className="adm-target-body">{target.body}</p>}
                         <div className="adm-target-meta-row">
                           {target.author?.name && (
-                            <span>Author: <strong>{target.author.name}</strong> ({target.author.email})</span>
+                            <span>{t('ui.k087')}{' '}<strong>{target.author.name}</strong> ({target.author.email})</span>
                           )}
                           {target.category && <span className="adm-category-tag">{target.category}</span>}
-                          {target.createdAt && <span>Posted: {formatDate(target.createdAt)}</span>}
+                          {target.createdAt && <span>{t('ui.k302')}{' '}{formatDate(target.createdAt)}</span>}
                         </div>
                       </div>
                     )}
@@ -330,10 +326,10 @@ export default function ReportDetailModal({
                         <p className="adm-target-body">{target.text || target.body || '—'}</p>
                         <div className="adm-target-meta-row">
                           {target.author?.name && (
-                            <span>Commenter: <strong>{target.author.name}</strong> ({target.author.email})</span>
+                            <span>{t('ui.k117')}{' '}<strong>{target.author.name}</strong> ({target.author.email})</span>
                           )}
-                          {target.postId && <span className="adm-meta-desc">Post ID: {target.postId}</span>}
-                          {target.createdAt && <span>Written: {formatDate(target.createdAt)}</span>}
+                          {target.postId && <span className="adm-meta-desc">{t('ui.k301')}{' '}{target.postId}</span>}
+                          {target.createdAt && <span>{t('ui.k466')}{' '}{formatDate(target.createdAt)}</span>}
                         </div>
                       </div>
                     )}
@@ -345,9 +341,9 @@ export default function ReportDetailModal({
                         {target.summary && <p className="adm-target-body">{target.summary}</p>}
                         <div className="adm-target-meta-row">
                           {target.author?.name && (
-                            <span>Author: <strong>{target.author.name}</strong> ({target.author.email})</span>
+                            <span>{t('ui.k087')}{' '}<strong>{target.author.name}</strong> ({target.author.email})</span>
                           )}
-                          {target.status && <span className="adm-status-badge">{target.status}</span>}
+                          {target.status && <span className="adm-status-badge">{t(`admin.articleStatus.${String(target.status).toUpperCase()}`, { defaultValue: target.status })}</span>}
                         </div>
                       </div>
                     )}
@@ -357,9 +353,9 @@ export default function ReportDetailModal({
                       <div className="adm-target-user-view">
                         <h4 className="adm-target-title">{target.name}</h4>
                         <div className="adm-target-meta-row">
-                          <span>Email: <strong>{target.email}</strong></span>
-                          {target.role && <span className="adm-role-badge">{target.role}</span>}
-                          {target.status && <span className="adm-user-status-pill">{target.status}</span>}
+                          <span>{t('ui.k165')}{' '}<strong>{target.email}</strong></span>
+                          {target.role && <span className="adm-role-badge">{t(`admin.userRoles.${target.role}`, { defaultValue: target.role })}</span>}
+                          {target.status && <span className="adm-user-status-pill">{t(`admin.userStatus.${target.status}`, { defaultValue: target.status })}</span>}
                         </div>
                       </div>
                     )}
@@ -370,12 +366,11 @@ export default function ReportDetailModal({
               {/* Action Taken / Moderator Note */}
               {reportDetails.actionTaken && (
                 <div className="adm-detail-section">
-                  <h3 className="adm-section-heading">Resolution & Action Taken</h3>
+                  <h3 className="adm-section-heading">{t('ui.k344')}</h3>
                   <div className="adm-resolution-box">
-                    <p><strong>Note:</strong> {reportDetails.actionTaken}</p>
+                    <p><strong>{t('ui.k281')}</strong> {reportDetails.actionTaken}</p>
                     {reportDetails.moderator?.name && (
-                      <span className="adm-meta-desc">
-                        Processed by <strong>{reportDetails.moderator.name}</strong> ({reportDetails.moderator.email})
+                      <span className="adm-meta-desc">{t('ui.k304')}<strong>{reportDetails.moderator.name}</strong> ({reportDetails.moderator.email})
                       </span>
                     )}
                   </div>
@@ -385,7 +380,7 @@ export default function ReportDetailModal({
               {/* ── Audit History ─────────────────────────────────────────── */}
               {reportDetails.auditHistory && reportDetails.auditHistory.length > 0 && (
                 <div className="adm-detail-section">
-                  <h3 className="adm-section-heading">Moderation Audit Trail</h3>
+                  <h3 className="adm-section-heading">{t('ui.k250')}</h3>
                   <div className="adm-review-history-list">
                     {reportDetails.auditHistory.map((audit) => (
                       <div key={audit.id} className="adm-review-item">
@@ -396,14 +391,14 @@ export default function ReportDetailModal({
                           <span className="adm-review-time">{formatDate(audit.createdAt)}</span>
                         </div>
                         <div className="adm-review-reviewer">
-                          <span>Moderator: <strong>{audit.admin?.name || 'Administrator'}</strong></span>
+                          <span>{t('ui.k253')}{' '}<strong>{audit.admin?.name || t('admin.userRoles.ADMIN')}</strong></span>
                           {audit.admin?.email && (
                             <span className="adm-reviewer-email"> ({audit.admin.email})</span>
                           )}
                         </div>
                         {audit.details?.moderationNote && (
                           <div className="adm-review-feedback">
-                            <em>Note:</em> {audit.details.moderationNote}
+                            <em>{t('ui.k281')}</em> {audit.details.moderationNote}
                           </div>
                         )}
                       </div>
@@ -415,7 +410,7 @@ export default function ReportDetailModal({
               {/* ── Moderation Action Panel (for PENDING reports) ─────────── */}
               {reportDetails.status === 'PENDING' && (
                 <div className="adm-moderation-actions-panel">
-                  <h3 className="adm-section-heading">Moderation Decision</h3>
+                  <h3 className="adm-section-heading">{t('ui.k251')}</h3>
 
                   {activeAction === null && (
                     <div className="adm-action-buttons-row">
@@ -430,9 +425,7 @@ export default function ReportDetailModal({
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                           <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Resolve Report
-                      </button>
+                        </svg>{t('ui.k347')}</button>
 
                       <button
                         type="button"
@@ -447,28 +440,22 @@ export default function ReportDetailModal({
                           <circle cx="12" cy="12" r="10" />
                           <line x1="15" y1="9" x2="9" y2="15" />
                           <line x1="9" y1="9" x2="15" y2="15" />
-                        </svg>
-                        Dismiss Report
-                      </button>
+                        </svg>{t('ui.k144')}</button>
                     </div>
                   )}
 
                   {/* Resolve Form */}
                   {activeAction === 'resolve' && (
                     <form onSubmit={handleResolve} className="adm-action-form adm-approve-form">
-                      <h4 className="adm-form-title">Resolve Content Report</h4>
-                      <p className="adm-form-desc">
-                        Marking this report as <strong>RESOLVED</strong> acknowledges that appropriate moderation action was taken or verified.
-                      </p>
+                      <h4 className="adm-form-title">{t('ui.k346')}</h4>
+                      <p className="adm-form-desc">{t('ui.k248')}<strong>{t('ui.k312')}</strong>{t('ui.k472')}</p>
 
-                      <label className="adm-form-label">
-                        Resolution Note (Optional)
-                        <textarea
+                      <label className="adm-form-label">{t('ui.k345')}<textarea
                           className="adm-textarea"
                           rows="2"
                           value={moderatorNote}
                           onChange={(e) => setModeratorNote(e.target.value)}
-                          placeholder="e.g., Content reviewed and confirmed compliant with community guidelines."
+                          placeholder={t('ui.a054')}
                           disabled={submitting}
                         />
                       </label>
@@ -479,15 +466,13 @@ export default function ReportDetailModal({
                           className="button button-outline button-small"
                           onClick={() => setActiveAction(null)}
                           disabled={submitting}
-                        >
-                          Cancel
-                        </button>
+                        >{t('ui.k106')}</button>
                         <button
                           type="submit"
                           className="button button-primary button-small"
                           disabled={submitting}
                         >
-                          {submitting ? 'Resolving…' : 'Confirm Resolution'}
+                          {submitting ? t('ui.extra.resolving') : t('ui.extra.confirmResolution')}
                         </button>
                       </div>
                     </form>
@@ -496,19 +481,15 @@ export default function ReportDetailModal({
                   {/* Dismiss Form */}
                   {activeAction === 'dismiss' && (
                     <form onSubmit={handleDismiss} className="adm-action-form adm-reject-form">
-                      <h4 className="adm-form-title">Dismiss Content Report</h4>
-                      <p className="adm-form-desc">
-                        Dismissing this report records that the report was investigated and deemed invalid, mistaken, or not requiring administrative intervention.
-                      </p>
+                      <h4 className="adm-form-title">{t('ui.k143')}</h4>
+                      <p className="adm-form-desc">{t('ui.k148')}</p>
 
-                      <label className="adm-form-label">
-                        Dismissal Note (Optional)
-                        <textarea
+                      <label className="adm-form-label">{t('ui.k145')}<textarea
                           className="adm-textarea"
                           rows="2"
                           value={moderatorNote}
                           onChange={(e) => setModeratorNote(e.target.value)}
-                          placeholder="e.g., Target content does not violate platform rules."
+                          placeholder={t('ui.a057')}
                           disabled={submitting}
                         />
                       </label>
@@ -519,15 +500,13 @@ export default function ReportDetailModal({
                           className="button button-outline button-small"
                           onClick={() => setActiveAction(null)}
                           disabled={submitting}
-                        >
-                          Cancel
-                        </button>
+                        >{t('ui.k106')}</button>
                         <button
                           type="submit"
                           className="button button-outline button-small"
                           disabled={submitting}
                         >
-                          {submitting ? 'Dismissing…' : 'Confirm Dismissal'}
+                          {submitting ? t('ui.extra.dismissing') : t('ui.extra.confirmDismissal')}
                         </button>
                       </div>
                     </form>
@@ -545,9 +524,7 @@ export default function ReportDetailModal({
             className="button button-outline"
             onClick={onClose}
             disabled={submitting}
-          >
-            Close
-          </button>
+          >{t('ui.k114')}</button>
         </div>
       </div>
     </div>
