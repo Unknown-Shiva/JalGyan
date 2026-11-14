@@ -125,7 +125,7 @@ export default function Bookmarks() {
             >
               <Trash2 size={17}/>
             </button>
-            <Link to="/forum" className="text-button">Explore community <ArrowUpRight size={15}/></Link>
+            <Link to={`/articles/${article.slug || article.id}`} className="text-button">Read Article <ArrowUpRight size={15}/></Link>
           </div>
         </article>
       })}
@@ -133,7 +133,7 @@ export default function Bookmarks() {
         <Bookmark size={30}/>
         <h3>No saved resources yet</h3>
         <p>Articles you bookmark will appear here.</p>
-        <Link to="/forum" className="button button-primary">Explore community</Link>
+        <Link to="/knowledge" className="button button-primary">Browse Knowledge Library</Link>
       </div>}
     </div>}
   </div>
