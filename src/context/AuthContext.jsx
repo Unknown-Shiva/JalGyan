@@ -4,7 +4,6 @@ import { authService } from '../services/authService'
 export const AuthContext = createContext(null)
 
 const readToken = () => { try { return localStorage.getItem('ww_token') } catch { return null } }
-const readCachedUser = () => { try { return JSON.parse(localStorage.getItem('ww_user')) } catch { return null } }
 const clearStoredSession = () => { try { localStorage.removeItem('ww_token'); localStorage.removeItem('ww_user') } catch {} }
 const storeSession = (token, user) => {
   if (!token || !user) throw new Error('The authentication response was incomplete. Please try again.')
