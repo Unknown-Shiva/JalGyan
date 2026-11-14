@@ -1,6 +1,7 @@
 import { ArrowUp, ArrowDown, MessageCircle, MapPin, Clock3, ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Avatar from '../common/Avatar'
+import ReportControl from './ReportControl'
 
 function initials(name = '') { return name.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase() }
 function formatDate(value) {
@@ -26,6 +27,7 @@ export default function PostCard({ post, onVote, busy = false }) {
           <button className={`post-action ${post.currentUserVote === 'UPVOTE' ? 'saved' : ''}`} aria-pressed={post.currentUserVote === 'UPVOTE'} disabled={busy} onClick={() => onVote(post.id, 'UPVOTE')}><ArrowUp size={17}/><b>{score}</b><span>Helpful</span></button>
           <button className={`post-action ${post.currentUserVote === 'DOWNVOTE' ? 'saved' : ''}`} aria-pressed={post.currentUserVote === 'DOWNVOTE'} disabled={busy} onClick={() => onVote(post.id, 'DOWNVOTE')}><ArrowDown size={16}/><span>Not helpful</span></button>
           <Link className="post-action" to={`/forum/${post.id}`}><MessageCircle size={17}/> <b>{post.commentsCount ?? 0}</b> <span>Comments</span></Link>
+          <ReportControl targetType="POST" targetId={post.id} targetLabel="discussion"/>
           <Link to={`/forum/${post.id}`} className="post-open">View discussion <ArrowUpRight size={15}/></Link>
         </div>
       </div>

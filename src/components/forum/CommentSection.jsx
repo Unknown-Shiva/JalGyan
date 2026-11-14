@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CornerDownRight, Send } from 'lucide-react'
 import Avatar from '../common/Avatar'
+import ReportControl from './ReportControl'
 
 function initials(name = '') { return name.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase() }
 function dateLabel(value) {
@@ -31,8 +32,8 @@ export default function CommentSection({ comments = [], onComment }) {
       <div className="comment-list">
         {comments.length ? comments.map(comment => <div className="comment" key={comment.id}>
           <Avatar initials={initials(comment.author?.name)} size="small"/>
-          <div className="comment-content"><div className="comment-heading"><strong>{comment.author?.name || 'Community member'}</strong><span>{dateLabel(comment.createdAt)}</span></div><p>{comment.text}</p>
-            {(comment.replies || []).map(reply => <div className="reply" key={reply.id}><CornerDownRight size={15}/><Avatar initials={initials(reply.author?.name)} size="tiny"/><div><strong>{reply.author?.name || 'Community member'}</strong><p>{reply.text}</p><small>{dateLabel(reply.createdAt)}</small></div></div>)}
+          <div className="comment-content"><div className="comment-heading"><strong>{comment.author?.name || 'Community member'}</strong><span>{dateLabel(comment.createdAt)}</span><ReportControl targetType="COMMENT" targetId={comment.id} targetLabel="comment"/></div><p>{comment.text}</p>
+            {(comment.replies || []).map(reply => <div className="reply" key={reply.id}><CornerDownRight size={15}/><Avatar initials={initials(reply.author?.name)} size="tiny"/><div className="reply-content"><strong>{reply.author?.name || 'Community member'}</strong><p>{reply.text}</p><small>{dateLabel(reply.createdAt)}</small></div><ReportControl targetType="COMMENT" targetId={reply.id} targetLabel="reply"/></div>)}
             {replyParent === comment.id ? <form className="comment-compose reply-compose" onSubmit={event => submit(event, comment.id)}><input value={replyText} onChange={event => setReplyText(event.target.value)} placeholder="Write a reply…" maxLength={2000}/><button className="button button-primary button-small" disabled={submitting || !replyText.trim()}><Send size={14}/>{submitting ? 'Sending…' : 'Send'}</button><button className="button button-outline button-small" type="button" onClick={() => { setReplyParent(null); setReplyText('') }}>Cancel</button></form> : <button className="text-button comment-reply-button" onClick={() => { setReplyParent(comment.id); setError('') }}>Reply</button>}
           </div>
         </div>) : <div className="empty-state compact"><p>No responses yet. Start the discussion.</p></div>}
