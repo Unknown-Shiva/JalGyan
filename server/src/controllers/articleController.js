@@ -498,3 +498,188 @@ export const createArticle = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * PUT /api/articles/:id
+ * Update an existing article (author or admin only)
+ */
+export const updateArticle = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user.id;
+    const currentUserRole = req.user.role;
+
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid article ID provided.',
+      });
+    }
+
+    const article = await prisma.article.findFirst({
+      where: { id: id.trim(), deletedAt: null },
+      include: { resources: true },
+    });
+
+    if (!article) {
+      return res.status(404).json({
+        success: false,
+        message: 'Article not found.',
+      });
+    }
+
+    // Permission check
+    const isAuthor = article.authorId === currentUserId;
+    const isAdmin = currentUserRole === 'ADMIN';
+
+    if (!isAuthor && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to edit this article.',
+      });
+    }
+
+    const {
+      title,
+      summary,
+      content,
+      categoryId,
+      coverImage,
+      readTime,
+      status,
+      submitForReview,
+      resources,
+    } = req.body || {};
+
+    const updateData = {};
+
+    if (title !== undefined) {
+      if (typeof title !== 'string' || title.trim().length < 8 || title.trim().length > 150) {
+        return res.status(400).json({
+          success: false,
+          message: 'Title must be between 8 and 150 characters.',
+        });
+      }
+      updateData.title = title.trim();
+      // If title changed, update slug
+      if (title.trim() !== article.title) {
+        updateData.slug = await generateUniqueSlug(title.trim());
+      }
+    }
+
+    if (summary !== undefined) {
+      if (typeof summary !== 'string' || summary.trim().length < 20 || summary.trim().length > 500) {
+        return res.status(400).json({
+          success: false,
+          message: 'Summary must be between 20 and 500 characters.',
+        });
+      }
+      updateData.summary = summary.trim();
+    }
+
+    if (content !== undefined) {
+      if (typeof content !== 'string' || content.trim().length < 50) {
+        return res.status(400).json({
+          success: false,
+          message: 'Article content must be at least 50 characters long.',
+        });
+      }
+      updateData.content = content.trim();
+    }
+
+    if (categoryId !== undefined) {
+      const category = await prisma.category.findUnique({
+        where: { id: String(categoryId).trim() },
+      });
+      if (!category) {
+        return res.status(400).json({
+          success: false,
+          message: 'Specified category does not exist.',
+        });
+      }
+      updateData.categoryId = category.id;
+    }
+
+    if (coverImage !== undefined) {
+      updateData.coverImage = coverImage && typeof coverImage === 'string' ? coverImage.trim() : null;
+    }
+
+    if (readTime !== undefined) {
+      updateData.readTime = readTime && typeof readTime === 'string' ? readTime.trim() : estimateReadTime(content || article.content);
+    } else if (content) {
+      updateData.readTime = estimateReadTime(content);
+    }
+
+    // Status workflow
+    if (submitForReview || status === 'PENDING_REVIEW') {
+      updateData.status = 'PENDING_REVIEW';
+      updateData.rejectionReason = null; // Clear previous rejection reason
+    } else if (status === 'DRAFT') {
+      updateData.status = 'DRAFT';
+    } else if (isAdmin && status) {
+      updateData.status = status;
+    } else if (article.status === 'REJECTED' && (content || title || summary)) {
+      // If author edited a rejected article, default to PENDING_REVIEW
+      updateData.status = 'PENDING_REVIEW';
+      updateData.rejectionReason = null;
+    }
+
+    // Execute update and resources sync in transaction
+    const updatedArticle = await prisma.$transaction(async (tx) => {
+      // Synchronize resources if provided
+      if (Array.isArray(resources)) {
+        await tx.articleResource.deleteMany({
+          where: { articleId: article.id },
+        });
+
+        const validResourceTypes = ['PDF', 'LINK', 'DATASET', 'VIDEO'];
+        const cleanResources = [];
+        for (const resItem of resources) {
+          if (resItem && typeof resItem.title === 'string' && typeof resItem.url === 'string') {
+            const resTitle = resItem.title.trim();
+            const resUrl = resItem.url.trim();
+            const resType = String(resItem.type || 'LINK').toUpperCase().trim();
+            if (resTitle && resUrl) {
+              cleanResources.push({
+                articleId: article.id,
+                title: resTitle,
+                url: resUrl,
+                type: validResourceTypes.includes(resType) ? resType : 'LINK',
+              });
+            }
+          }
+        }
+
+        if (cleanResources.length > 0) {
+          await tx.articleResource.createMany({
+            data: cleanResources,
+          });
+        }
+      }
+
+      return tx.article.update({
+        where: { id: article.id },
+        data: updateData,
+        include: {
+          category: true,
+          resources: true,
+          author: {
+            select: {
+              id: true,
+              name: true,
+              location: true,
+            },
+          },
+        },
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Article updated successfully.',
+      data: { article: updatedArticle },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
