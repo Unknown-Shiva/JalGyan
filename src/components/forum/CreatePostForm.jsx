@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { ImagePlus, MapPin, Send, X } from 'lucide-react'
+import { Send, X } from 'lucide-react'
 
-export default function CreatePostForm({ onSubmit, onClose }) {
+export default function CreatePostForm({ onSubmit, onClose, submitting = false }) {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [category, setCategory] = useState('Community')
@@ -18,7 +18,7 @@ export default function CreatePostForm({ onSubmit, onClose }) {
       <label>Details<textarea value={body} onChange={e=>setBody(e.target.value)} placeholder="Share the context, what you have tried, or what you want to learn..." rows={4}/></label>
       <div className="form-bottom">
         <label className="select-label">Topic<select value={category} onChange={e=>setCategory(e.target.value)}><option>Community</option><option>Agriculture</option><option>Rainwater</option><option>Household</option><option>Groundwater</option></select></label>
-        <div className="form-submit-area">{error && <span className="form-error">{error}</span>}<button className="button button-primary" type="submit"><Send size={15}/> Publish discussion</button></div>
+        <div className="form-submit-area">{error && <span className="form-error">{error}</span>}<button className="button button-primary" type="submit" disabled={submitting}><Send size={15}/> {submitting ? 'Publishing…' : 'Publish discussion'}</button></div>
       </div>
     </form>
   )
