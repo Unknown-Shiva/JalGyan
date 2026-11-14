@@ -8,6 +8,10 @@ import {
   getMyArticles,
   submitArticleForReview,
 } from '../controllers/articleController.js';
+import {
+  addArticleResource,
+  deleteArticleResource,
+} from '../controllers/resourceController.js';
 import { optionalAuth, requireAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
@@ -27,5 +31,9 @@ router.patch('/:id/submit', requireAuth, submitArticleForReview);
 router.put('/:id', requireAuth, updateArticle);
 router.patch('/:id', requireAuth, updateArticle);
 router.delete('/:id', requireAuth, deleteArticle);
+
+// Article Resource subroutes
+router.post('/:id/resources', requireAuth, addArticleResource);
+router.delete('/:id/resources/:resourceId', requireAuth, deleteArticleResource);
 
 export default router;
