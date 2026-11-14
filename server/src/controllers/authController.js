@@ -5,17 +5,21 @@ import { sanitizeUser } from '../utils/sanitizeUser.js';
 
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const body = req.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return res.status(400).json({ success: false, message: 'Provide a valid login object.' });
+    }
+    const { email, password } = body;
 
     // Validate request body
-    if (!email || !password) {
+    if (typeof email !== 'string' || !email.trim() || typeof password !== 'string' || !password) {
       return res.status(400).json({
         success: false,
         message: 'Please provide both email and password.',
       });
     }
 
-    const normalizedEmail = String(email).toLowerCase().trim();
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Query user by email
     const user = await prisma.user.findUnique({
@@ -47,7 +51,7 @@ export const login = async (req, res, next) => {
     }
 
     // Verify password hash
-    const isMatch = await bcrypt.compare(String(password), user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -257,10 +261,10 @@ export const getMyActivity = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const [postsCount, commentsCount, bookmarksCount, votesCount] = await Promise.all([
-      prisma.forumPost.count({ where: { authorId: userId, deletedAt: null } }),
-      prisma.comment.count({ where: { authorId: userId, deletedAt: null, post: { deletedAt: null } } }),
+      prisma.forumPost.count({ where: { authorId: userId, deletedAt: null, author: { deletedAt: null, status: 'ACTIVE' } } }),
+      prisma.comment.count({ where: { authorId: userId, deletedAt: null, post: { deletedAt: null, author: { deletedAt: null, status: 'ACTIVE' } } } }),
       prisma.bookmark.count({ where: { userId, article: { status: 'PUBLISHED', deletedAt: null } } }),
-      prisma.vote.count({ where: { userId, post: { deletedAt: null } } }),
+      prisma.vote.count({ where: { userId, post: { deletedAt: null, author: { deletedAt: null, status: 'ACTIVE' } } } }),
     ]);
     return res.status(200).json({ success: true, data: { activity: { postsCount, commentsCount, bookmarksCount, votesCount } } });
   } catch (error) { next(error); }

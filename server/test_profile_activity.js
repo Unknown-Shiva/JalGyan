@@ -14,11 +14,12 @@ const posts = [
   { authorId: 'user-a', deletedAt: new Date() }, { authorId: 'user-b', deletedAt: null },
 ];
 const comments = [
-  { authorId: 'user-a', postDeleted: false, deletedAt: null, parentId: null },
-  { authorId: 'user-a', postDeleted: false, deletedAt: null, parentId: 'comment-1' }, // nested reply
-  { authorId: 'user-a', postDeleted: false, deletedAt: new Date(), parentId: null },
-  { authorId: 'user-a', postDeleted: true, deletedAt: null, parentId: null },
-  { authorId: 'user-b', postDeleted: false, deletedAt: null, parentId: null },
+  { authorId: 'user-a', postDeleted: false, postAuthorVisible: true, deletedAt: null, parentId: null },
+  { authorId: 'user-a', postDeleted: false, postAuthorVisible: true, deletedAt: null, parentId: 'comment-1' }, // nested reply
+  { authorId: 'user-a', postDeleted: false, postAuthorVisible: false, deletedAt: null, parentId: null }, // invisible post by suspended/deleted author
+  { authorId: 'user-a', postDeleted: false, postAuthorVisible: true, deletedAt: new Date(), parentId: null },
+  { authorId: 'user-a', postDeleted: true, postAuthorVisible: true, deletedAt: null, parentId: null },
+  { authorId: 'user-b', postDeleted: false, postAuthorVisible: true, deletedAt: null, parentId: null },
 ];
 const bookmarks = [
   { userId: 'user-a', status: 'PUBLISHED', articleDeleted: false },
@@ -27,8 +28,10 @@ const bookmarks = [
   { userId: 'user-b', status: 'PUBLISHED', articleDeleted: false },
 ];
 const votes = [
-  { userId: 'user-a', postDeleted: false }, { userId: 'user-a', postDeleted: true },
-  { userId: 'user-b', postDeleted: false },
+  { userId: 'user-a', postDeleted: false, postAuthorVisible: true },
+  { userId: 'user-a', postDeleted: false, postAuthorVisible: false }, // vote on invisible post
+  { userId: 'user-a', postDeleted: true, postAuthorVisible: true },
+  { userId: 'user-b', postDeleted: false, postAuthorVisible: true },
 ];
 const delegates = [
   ['user', 'findUnique'], ['forumPost', 'count'], ['comment', 'count'], ['bookmark', 'count'], ['vote', 'count'],
@@ -42,10 +45,19 @@ async function request(base, token) {
 
 try {
   prisma.user.findUnique = async ({ where }) => users.get(where.id) || null;
-  prisma.forumPost.count = async ({ where }) => posts.filter(p => p.authorId === where.authorId && (where.deletedAt === undefined || p.deletedAt === where.deletedAt)).length;
-  prisma.comment.count = async ({ where }) => comments.filter(c => c.authorId === where.authorId && c.deletedAt === null && !c.postDeleted).length;
+  prisma.forumPost.count = async ({ where }) => {
+    assert.deepEqual(where.author, { deletedAt: null, status: 'ACTIVE' });
+    return posts.filter(p => p.authorId === where.authorId && (where.deletedAt === undefined || p.deletedAt === where.deletedAt)).length;
+  };
+  prisma.comment.count = async ({ where }) => {
+    assert.deepEqual(where.post.author, { deletedAt: null, status: 'ACTIVE' });
+    return comments.filter(c => c.authorId === where.authorId && c.deletedAt === null && !c.postDeleted && c.postAuthorVisible).length;
+  };
   prisma.bookmark.count = async ({ where }) => bookmarks.filter(b => b.userId === where.userId && b.status === where.article.status && !b.articleDeleted).length;
-  prisma.vote.count = async ({ where }) => votes.filter(v => v.userId === where.userId && !v.postDeleted).length;
+  prisma.vote.count = async ({ where }) => {
+    assert.deepEqual(where.post.author, { deletedAt: null, status: 'ACTIVE' });
+    return votes.filter(v => v.userId === where.userId && !v.postDeleted && v.postAuthorVisible).length;
+  };
 
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}/api`;

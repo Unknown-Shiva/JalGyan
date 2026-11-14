@@ -20,7 +20,7 @@ async function request(baseUrl, method, path, body) {
   const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: { 'Content-Type': 'application/json' },
-    ...(body ? { body: JSON.stringify(body) } : {}),
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   return {
     status: response.status,
@@ -98,6 +98,12 @@ async function run() {
       assert.equal(invalid.status, 400, `invalid input returns 400: ${messagePattern}`);
       assert.equal(invalid.body.success, false);
       assert.match(invalid.body.message, messagePattern);
+    }
+
+    for (const malformedBody of [null, [], { email: 7, password: {} }]) {
+      const invalidLogin = await request(baseUrl, 'POST', '/auth/login', malformedBody);
+      assert.equal(invalidLogin.status, 400, 'malformed login payload returns a validation response');
+      assert.equal(invalidLogin.body.success, false);
     }
 
     const login = await request(baseUrl, 'POST', '/auth/login', { email, password });
