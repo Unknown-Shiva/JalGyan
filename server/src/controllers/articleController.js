@@ -25,7 +25,7 @@ const parsePositiveInt = (value, fallback, label, max = Number.MAX_SAFE_INTEGER)
 
 /**
  * GET /api/articles
- * Retrieve paginated public articles with category filter and sorting
+ * Retrieve paginated public articles with search, multi-facet filtering, and sorting
  */
 export const listArticles = async (req, res, next) => {
   try {
@@ -33,22 +33,66 @@ export const listArticles = async (req, res, next) => {
     const limit = parsePositiveInt(req.query.limit, 9, 'limit', 50);
     const skip = (page - 1) * limit;
 
-    const { category, sort } = req.query;
+    const { category, search, q, sort, author, resourceType } = req.query;
+    const searchTerm = (search || q || '').trim();
 
     const where = {
       status: 'PUBLISHED',
       deletedAt: null,
     };
 
+    const andConditions = [];
+
+    // Search filter across title, summary, and content
+    if (searchTerm) {
+      andConditions.push({
+        OR: [
+          { title: { contains: searchTerm, mode: 'insensitive' } },
+          { summary: { contains: searchTerm, mode: 'insensitive' } },
+          { content: { contains: searchTerm, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    // Category filter
     if (category && typeof category === 'string' && category.trim()) {
       const catTrim = category.trim();
-      where.category = {
-        OR: [
-          { slug: catTrim.toLowerCase() },
-          { id: catTrim },
-          { name: { equals: catTrim, mode: 'insensitive' } },
-        ],
-      };
+      andConditions.push({
+        category: {
+          OR: [
+            { slug: catTrim.toLowerCase() },
+            { id: catTrim },
+            { name: { equals: catTrim, mode: 'insensitive' } },
+          ],
+        },
+      });
+    }
+
+    // Author filter
+    if (author && typeof author === 'string' && author.trim()) {
+      andConditions.push({
+        author: {
+          OR: [
+            { id: author.trim() },
+            { name: { contains: author.trim(), mode: 'insensitive' } },
+          ],
+        },
+      });
+    }
+
+    // Resource Type filter (e.g. articles with VIDEO or PDF)
+    if (resourceType && typeof resourceType === 'string' && resourceType.trim()) {
+      andConditions.push({
+        resources: {
+          some: {
+            type: { equals: resourceType.trim().toUpperCase() },
+          },
+        },
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
     let orderBy = [{ publishedAt: 'desc' }, { createdAt: 'desc' }];
@@ -122,6 +166,12 @@ export const listArticles = async (req, res, next) => {
       success: true,
       data: {
         articles: formatted,
+        filters: {
+          search: searchTerm || null,
+          category: category || null,
+          resourceType: resourceType || null,
+          sort: sort || 'recent',
+        },
         pagination: {
           page,
           limit,
