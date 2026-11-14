@@ -1,11 +1,16 @@
-import { demoArticles } from '../data/demoData'
+import { apiRequest } from './api'
 
-let saved = ['a1', 'a3']
 export const bookmarkService = {
-  async list() { return demoArticles.filter(article => saved.includes(article.id)) },
-  async toggle(id) {
-    saved = saved.includes(id) ? saved.filter(item => item !== id) : [...saved, id]
-    return saved.includes(id)
+  async list() {
+    const result = await apiRequest('/bookmarks')
+    return Array.isArray(result?.bookmarks) ? result.bookmarks : []
   },
-  async has(id) { return saved.includes(id) }
+
+  async add(articleId) {
+    return apiRequest(`/bookmarks/${encodeURIComponent(articleId)}`, { method: 'POST' })
+  },
+
+  async remove(articleId) {
+    return apiRequest(`/bookmarks/${encodeURIComponent(articleId)}`, { method: 'DELETE' })
+  },
 }
