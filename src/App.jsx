@@ -21,6 +21,7 @@ import SubmitArticle from './pages/SubmitArticle';
 import EditArticle from './pages/EditArticle';
 import ResourceLibrary from './pages/ResourceLibrary';
 import MyArticles from './pages/MyArticles';
+import WaterCalculator from './pages/WaterCalculator';
 
 import { useAuth } from './hooks/useAuth';
 
@@ -90,6 +91,9 @@ export default function App() {
             </Protected>
           }
         />
+
+        {/* Module C: Water Conservation Calculator */}
+        <Route path="/calculator" element={<WaterCalculator />} />
 
         {/* Module C: Admin section */}
         <Route

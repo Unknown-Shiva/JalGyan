@@ -9,6 +9,7 @@ import userReportRoutes from './userReportRoutes.js';
 import categoryRoutes from './categoryRoutes.js';
 import articleRoutes from './articleRoutes.js';
 import resourceRoutes from './resourceRoutes.js';
+import calculatorRoutes from './calculatorRoutes.js';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/reports', userReportRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/articles', articleRoutes);
 router.use('/resources', resourceRoutes);
+router.use('/calculator', calculatorRoutes);
 
 export default router;

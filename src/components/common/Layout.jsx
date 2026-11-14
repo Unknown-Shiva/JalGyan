@@ -67,16 +67,13 @@ export default function Layout() {
             >
               Community Forum
             </NavLink>
-            <a
-              href="#calculator"
-              className="nav-link"
-              onClick={(e) => {
-                e.preventDefault();
-                alert('Water conservation calculator is managed under Module C.');
-              }}
+            <NavLink
+              to="/calculator"
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+              onClick={() => setMenuOpen(false)}
             >
               Water Calculator
-            </a>
+            </NavLink>
             {user?.role === 'ADMIN' && (
               <NavLink
                 to="/admin"
