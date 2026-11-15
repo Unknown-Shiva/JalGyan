@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Layout from './components/common/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
